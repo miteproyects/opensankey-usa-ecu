@@ -238,9 +238,30 @@ function handleKeyDown(e) {
   }
 }
 
+// ===== Visitor Counter =====
+function updateVisitorCounter() {
+  const counterElement = document.getElementById('visitor-count');
+  if (!counterElement) return;
+  
+  // Use a simple localStorage counter for demo
+  // In production, you would use a backend service
+  let visits = localStorage.getItem('gameVisits');
+  if (!visits) {
+    visits = Math.floor(Math.random() * 1000) + 100; // Start with random number for demo
+  } else {
+    visits = parseInt(visits) + 1;
+  }
+  localStorage.setItem('gameVisits', visits);
+  counterElement.textContent = visits.toLocaleString();
+}
+
 // ===== Start Game =====
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', () => {
+    init();
+    updateVisitorCounter();
+  });
 } else {
   init();
+  updateVisitorCounter();
 }

@@ -572,12 +572,41 @@ button {
 .tagline {
   text-align: center;
   font-family: var(--font-heading);
-  font-size: 0.75rem;
+  font-size: 0.71rem;
   font-weight: 600;
   color: var(--color-primary);
   margin-top: var(--space-lg);
   margin-bottom: var(--space-xs);
   letter-spacing: 0.02em;
+}
+
+/* ===== Visitor Counter ===== */
+.visitor-counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  background: linear-gradient(135deg, rgba(123, 90, 166, 0.1), rgba(90, 154, 110, 0.1));
+  border-radius: var(--radius-full);
+  width: fit-content;
+  margin: var(--space-sm) auto 0;
+  border: 1px solid rgba(123, 90, 166, 0.2);
+}
+
+.counter-label {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.counter-value {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  min-width: 30px;
+  text-align: center;
 }
 
 /* ===== Modal ===== */
@@ -681,6 +710,139 @@ button {
 }
 
 /* ===== Responsive ===== */
+
+/* iPhone SE, small Android phones */
+@media (max-width: 375px) {
+  .game-card {
+    padding: var(--space-md);
+    max-width: 100%;
+  }
+  
+  .game-title {
+    font-size: clamp(0.6rem, 1.8vw, 0.8rem);
+  }
+  
+  .game-author {
+    font-size: 0.6rem;
+  }
+  
+  .brand-logo {
+    width: 100px;
+  }
+  
+  .players {
+    gap: var(--space-xs);
+  }
+  
+  .player-card {
+    padding: var(--space-xs);
+  }
+  
+  .player-avatar {
+    width: 44px;
+    height: 44px;
+  }
+  
+  .player-name {
+    font-size: 0.7rem;
+  }
+  
+  .board-grid {
+    gap: 6px;
+    padding: 6px;
+  }
+  
+  .cell {
+    border-radius: var(--radius-sm);
+  }
+  
+  .score-card {
+    padding: var(--space-xs);
+  }
+  
+  .score-avatar {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .score-label {
+    font-size: 0.6rem;
+  }
+  
+  .score-value {
+    font-size: 1.1rem;
+  }
+}
+
+/* iPhone X/11/12/13/14, standard Android */
+@media (min-width: 376px) and (max-width: 428px) {
+  .game-card {
+    padding: var(--space-lg);
+  }
+  
+  .player-avatar {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .game-title {
+    font-size: clamp(0.65rem, 2vw, 0.85rem);
+  }
+  
+  .game-author {
+    font-size: 0.65rem;
+  }
+}
+
+/* iPhone Plus, Max, large Android */
+@media (min-width: 429px) and (max-width: 480px) {
+  .game-card {
+    padding: var(--space-xl);
+  }
+  
+  .player-avatar {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+/* Mac/Windows - Small screens */
+@media (min-width: 481px) and (max-width: 768px) {
+  .game-card {
+    max-width: 450px;
+  }
+  
+  .player-avatar {
+    width: 68px;
+    height: 68px;
+  }
+}
+
+/* Mac/Windows - Standard */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .game-card {
+    max-width: 480px;
+  }
+  
+  .player-avatar {
+    width: 72px;
+    height: 72px;
+  }
+}
+
+/* Mac/Windows - Large screens */
+@media (min-width: 1025px) {
+  .game-card {
+    max-width: 500px;
+  }
+  
+  .player-avatar {
+    width: 76px;
+    height: 76px;
+  }
+}
+
+/* Legacy small screens */
 @media (max-width: 400px) {
   .game-card {
     padding: var(--space-lg);
