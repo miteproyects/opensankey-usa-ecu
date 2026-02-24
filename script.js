@@ -238,28 +238,43 @@ function handleKeyDown(e) {
   }
 }
 
-// ===== Visitor Counter using CountAPI =====
-function updateVisitorCounter() {
+// ===== Visitor Counter using reliable API =====
+async function updateVisitorCounter() {
   const counterElement = document.getElementById('visitor-count');
   if (!counterElement) return;
   
-  // Use CountAPI with completely new namespace to start from 0
-  const namespace = 'suzanna-valles-game';
-  const key = 'total-visits';
+  const namespace = 'tresenraya-suzanna';
+  const key = 'visits';
   
-  // First, try to get the current count
-  fetch(`https://api.countapi.xyz/get/${namespace}/${key}`)
-    .then(response => response.json())
-    .then(data => {
-      counterElement.textContent = data.value.toLocaleString();
-      
-      // Then increment the count
-      return fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
-    })
-    .catch(error => {
-      console.log('Counter error:', error);
-      counterElement.textContent = '0';
-    });
+  try {
+    // First, get current count
+    const getResponse = await fetch(`https://api.countapi.xyz/get/${namespace}/${key}`);
+    if (!getResponse.ok) throw new Error('Failed to get count');
+    
+    const getData = await getResponse.json();
+    const currentCount = getData.value || 0;
+    
+    // Display current count
+    counterElement.textContent = currentCount.toLocaleString();
+    
+    // Then, increment count
+    const hitResponse = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
+    if (!hitResponse.ok) throw new Error('Failed to increment count');
+    
+  } catch (error) {
+    console.log('Counter error:', error);
+    // If API fails, show cached value or 0
+    const cached = localStorage.getItem('visitorCountCache');
+    counterElement.textContent = cached || '1';
+  }
+}
+
+// Cache the count periodically
+function cacheVisitorCount() {
+  const counterElement = document.getElementById('visitor-count');
+  if (counterElement && counterElement.textContent !== 'Cargando...') {
+    localStorage.setItem('visitorCountCache', counterElement.textContent);
+  }
 }
 
 // ===== Start Game =====
@@ -267,8 +282,12 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     init();
     updateVisitorCounter();
+    // Cache count every 30 seconds
+    setInterval(cacheVisitorCount, 30000);
   });
 } else {
   init();
   updateVisitorCounter();
+  // Cache count every 30 seconds
+  setInterval(cacheVisitorCount, 30000);
 }
