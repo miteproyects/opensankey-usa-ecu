@@ -238,42 +238,54 @@ function handleKeyDown(e) {
   }
 }
 
-// ===== Visitor Counter using reliable API =====
+// ===== Visitor Counter using Hit Counter API =====
+let visitorCount = 0;
+
 async function updateVisitorCounter() {
   const counterElement = document.getElementById('visitor-count');
   if (!counterElement) return;
   
-  const namespace = 'tresenraya-suzanna';
-  const key = 'visits';
-  
   try {
-    // First, get current count
-    const getResponse = await fetch(`https://api.countapi.xyz/get/${namespace}/${key}`);
-    if (!getResponse.ok) throw new Error('Failed to get count');
+    // Use hits.seeyoufarm.com - reliable and free
+    // First hit to increment
+    const hitResponse = await fetch('https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=miteproyects.github.io-tres-en-raya-suzanna&count_bg=%237B5AA6&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Visitas&edge_flat=false', {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-cache'
+    });
     
-    const getData = await getResponse.json();
-    const currentCount = getData.value || 0;
+    if (!hitResponse.ok) throw new Error('Hit failed');
     
-    // Display current count
-    counterElement.textContent = currentCount.toLocaleString();
+    // Get the SVG text
+    const svgText = await hitResponse.text();
     
-    // Then, increment count
-    const hitResponse = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
-    if (!hitResponse.ok) throw new Error('Failed to increment count');
+    // Extract the count number from SVG
+    const countMatch = svgText.match(/>(\d+)</);
+    if (countMatch) {
+      visitorCount = parseInt(countMatch[1]);
+      counterElement.textContent = visitorCount.toLocaleString();
+      
+      // Cache for backup
+      localStorage.setItem('tresEnRayaVisitorCount', visitorCount.toString());
+    } else {
+      throw new Error('Could not parse count');
+    }
     
   } catch (error) {
-    console.log('Counter error:', error);
-    // If API fails, show cached value or 0
-    const cached = localStorage.getItem('visitorCountCache');
-    counterElement.textContent = cached || '1';
-  }
-}
-
-// Cache the count periodically
-function cacheVisitorCount() {
-  const counterElement = document.getElementById('visitor-count');
-  if (counterElement && counterElement.textContent !== 'Cargando...') {
-    localStorage.setItem('visitorCountCache', counterElement.textContent);
+    console.log('Counter API error:', error);
+    
+    // Fallback: use cached count + 1
+    const cached = localStorage.getItem('tresEnRayaVisitorCount');
+    if (cached) {
+      visitorCount = parseInt(cached) + 1;
+      counterElement.textContent = visitorCount.toLocaleString();
+      localStorage.setItem('tresEnRayaVisitorCount', visitorCount.toString());
+    } else {
+      // First time ever
+      visitorCount = 1;
+      counterElement.textContent = '1';
+      localStorage.setItem('tresEnRayaVisitorCount', '1');
+    }
   }
 }
 
@@ -282,12 +294,8 @@ if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     init();
     updateVisitorCounter();
-    // Cache count every 30 seconds
-    setInterval(cacheVisitorCount, 30000);
   });
 } else {
   init();
   updateVisitorCounter();
-  // Cache count every 30 seconds
-  setInterval(cacheVisitorCount, 30000);
 }
