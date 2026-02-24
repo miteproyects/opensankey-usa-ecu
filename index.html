@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="3 en Raya - Juego clásico con temática DoTerra por Suzanna Valles">
+  <meta name="description" content="Tres en Raya - DoTerra Edition con Good Lavanda vs Bad Pill">
   <meta name="theme-color" content="#7b5aa6">
-  <title>Tres en Raya | Suzanna Valles</title>
+  <title>Tres en Raya | DoTerra Edition</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,24 +22,24 @@
     </header>
 
     <section class="players" aria-label="Jugadores">
-      <div class="player-card" id="player-x" data-player="x">
+      <div class="player-card good" id="player-x" data-player="x">
         <div class="player-avatar">
-          <img src="iconp1.jpg" alt="Lavender">
+          <img src="iconp1.jpg" alt="Good Lavanda">
         </div>
-        <span class="player-name">Lavender</span>
-        <span class="player-badge">X</span>
+        <span class="player-name">Good Lavanda</span>
+        <span class="player-badge good-badge">✓</span>
       </div>
       
       <div class="vs-divider">
         <span class="vs-text">VS</span>
       </div>
       
-      <div class="player-card" id="player-o" data-player="o">
+      <div class="player-card bad" id="player-o" data-player="o">
         <div class="player-avatar">
-          <img src="iconp2.jpg" alt="Peppermint">
+          <img src="iconp2.jpg" alt="Bad Pill">
         </div>
-        <span class="player-name">Peppermint</span>
-        <span class="player-badge">O</span>
+        <span class="player-name">Bad Pill</span>
+        <span class="player-badge bad-badge">✗</span>
       </div>
     </section>
 
@@ -47,7 +47,7 @@
       <div class="turn-avatar">
         <img id="turn-img" src="iconp1.jpg" alt="">
       </div>
-      <span class="turn-text">Turno de <strong id="turn-name">Lavender</strong></span>
+      <span class="turn-text">Turno de <strong id="turn-name">Good Lavanda</strong></span>
     </div>
 
     <section class="game-board" aria-label="Tablero de juego">
@@ -72,12 +72,12 @@
     </button>
 
     <section class="score-board" aria-label="Puntuación">
-      <div class="score-card">
+      <div class="score-card good-score">
         <div class="score-avatar">
-          <img src="iconp1.jpg" alt="">
+          <img src="iconp1.jpg" alt="Good Lavanda">
         </div>
         <div class="score-info">
-          <span class="score-label">Lavender</span>
+          <span class="score-label">Good Lavanda</span>
           <span class="score-value" id="score-x">0</span>
         </div>
       </div>
@@ -88,12 +88,12 @@
         <span class="divider-line"></span>
       </div>
       
-      <div class="score-card">
+      <div class="score-card bad-score">
         <div class="score-avatar">
-          <img src="iconp2.jpg" alt="">
+          <img src="iconp2.jpg" alt="Bad Pill">
         </div>
         <div class="score-info">
-          <span class="score-label">Peppermint</span>
+          <span class="score-label">Bad Pill</span>
           <span class="score-value" id="score-o">0</span>
         </div>
       </div>
@@ -129,4 +129,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-<!-- GitHub Pages deploy -->

@@ -1,12 +1,18 @@
 /* ===== CSS Variables & Design Tokens ===== */
 :root {
-  /* Colors */
+  /* Colors - Good vs Bad Theme */
   --color-primary: #7b5aa6;
   --color-primary-dark: #634892;
   --color-secondary: #5a9a6e;
   --color-secondary-dark: #4a855c;
+  --color-good: #4CAF50;
+  --color-good-light: #81C784;
+  --color-good-dark: #388E3C;
+  --color-bad: #F44336;
+  --color-bad-light: #E57373;
+  --color-bad-dark: #D32F2F;
   --color-accent: #e8a87c;
-  --color-background: #f5f3f7;
+  --color-background: linear-gradient(135deg, #f5f3f7 0%, #e8f5e9 50%, #ffebee 100%);
   --color-surface: #ffffff;
   --color-surface-elevated: #faf9fb;
   --color-text-primary: #2d2a31;
@@ -62,10 +68,7 @@ html {
 
 body {
   font-family: var(--font-body);
-  background: var(--color-background);
-  background-image: 
-    radial-gradient(ellipse at 10% 20%, rgba(123, 90, 166, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 90% 80%, rgba(90, 154, 110, 0.08) 0%, transparent 50%);
+  background: linear-gradient(135deg, #e8f5e9 0%, #f5f3f7 50%, #ffebee 100%);
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -188,20 +191,23 @@ button {
   position: relative;
 }
 
-.player-card.active {
-  background: linear-gradient(135deg, rgba(123, 90, 166, 0.1), rgba(90, 154, 110, 0.1));
-  border-color: var(--color-primary);
+.player-card.good.active {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(129, 199, 132, 0.1));
+  border-color: var(--color-good);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
 }
 
-.player-card[data-player="o"].active {
-  border-color: var(--color-secondary);
+.player-card.bad.active {
+  background: linear-gradient(135deg, rgba(244, 67, 54, 0.15), rgba(229, 115, 115, 0.1));
+  border-color: var(--color-bad);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
 }
 
 .player-avatar {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   border-radius: var(--radius-full);
   overflow: hidden;
   border: 3px solid var(--color-border);
@@ -209,14 +215,14 @@ button {
   box-shadow: var(--shadow-sm);
 }
 
-.player-card.active .player-avatar {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px rgba(123, 90, 166, 0.15);
+.player-card.good.active .player-avatar {
+  border-color: var(--color-good);
+  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.25);
 }
 
-.player-card[data-player="o"].active .player-avatar {
-  border-color: var(--color-secondary);
-  box-shadow: 0 0 0 4px rgba(90, 154, 110, 0.15);
+.player-card.bad.active .player-avatar {
+  border-color: var(--color-bad);
+  box-shadow: 0 0 0 4px rgba(244, 67, 54, 0.25);
 }
 
 .player-avatar img {
@@ -226,29 +232,29 @@ button {
 }
 
 .player-name {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--color-text-secondary);
   transition: color var(--transition-fast);
+  text-align: center;
 }
 
-.player-card.active .player-name {
-  color: var(--color-primary);
+.player-card.good.active .player-name {
+  color: var(--color-good-dark);
 }
 
-.player-card[data-player="o"].active .player-name {
-  color: var(--color-secondary);
+.player-card.bad.active .player-name {
+  color: var(--color-bad-dark);
 }
 
 .player-badge {
   position: absolute;
   top: -8px;
   right: -8px;
-  width: 24px;
-  height: 24px;
-  background: var(--color-primary);
+  width: 26px;
+  height: 26px;
   color: white;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 700;
   border-radius: var(--radius-full);
   display: flex;
@@ -257,8 +263,12 @@ button {
   box-shadow: var(--shadow-sm);
 }
 
-.player-card[data-player="o"] .player-badge {
-  background: var(--color-secondary);
+.player-badge.good-badge {
+  background: var(--color-good);
+}
+
+.player-badge.bad-badge {
+  background: var(--color-bad);
 }
 
 .vs-divider {

@@ -7,8 +7,8 @@
 
 // ===== Constants =====
 const PLAYERS = {
-  X: { id: 'x', name: 'Lavender', icon: 'iconp1.jpg', color: 'primary' },
-  O: { id: 'o', name: 'Peppermint', icon: 'iconp2.jpg', color: 'secondary' }
+  X: { id: 'x', name: 'Good Lavanda', icon: 'iconp1.jpg', color: 'good' },
+  O: { id: 'o', name: 'Bad Pill', icon: 'iconp2.jpg', color: 'bad' }
 };
 
 const WIN_COMBINATIONS = [
@@ -201,8 +201,8 @@ function showWinModal() {
   elements.modalImg.alt = winner.name;
   elements.modalTitle.textContent = `¡${winner.name} gana!`;
   elements.modalMessage.innerHTML = winner === PLAYERS.X 
-    ? 'Calm and relaxing victory!' 
-    : 'Fresh and invigorating win!';
+    ? '¡El bien prevalece!' 
+    : '¡El mal triunfa esta vez!';
   
   showModal();
 }
@@ -210,7 +210,7 @@ function showWinModal() {
 function showDrawModal() {
   elements.modalImg.style.display = 'none';
   elements.modalTitle.textContent = '¡Empate!';
-  elements.modalMessage.textContent = '¡Ambos aceites son increíbles!';
+  elements.modalMessage.textContent = '¡La batalla continúa!';
   
   showModal();
 }
