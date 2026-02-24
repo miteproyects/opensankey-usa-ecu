@@ -238,21 +238,28 @@ function handleKeyDown(e) {
   }
 }
 
-// ===== Visitor Counter =====
+// ===== Visitor Counter using CountAPI =====
 function updateVisitorCounter() {
   const counterElement = document.getElementById('visitor-count');
   if (!counterElement) return;
   
-  // Use a simple localStorage counter for demo
-  // In production, you would use a backend service
-  let visits = localStorage.getItem('gameVisits');
-  if (!visits) {
-    visits = Math.floor(Math.random() * 1000) + 100; // Start with random number for demo
-  } else {
-    visits = parseInt(visits) + 1;
-  }
-  localStorage.setItem('gameVisits', visits);
-  counterElement.textContent = visits.toLocaleString();
+  // Use CountAPI for real visitor counting
+  const namespace = 'tres-en-raya-suzanna-valles';
+  const key = 'visitors';
+  
+  // First, try to get the current count
+  fetch(`https://api.countapi.xyz/get/${namespace}/${key}`)
+    .then(response => response.json())
+    .then(data => {
+      counterElement.textContent = data.value.toLocaleString();
+      
+      // Then increment the count
+      return fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
+    })
+    .catch(error => {
+      console.log('Counter error:', error);
+      counterElement.textContent = '---';
+    });
 }
 
 // ===== Start Game =====
