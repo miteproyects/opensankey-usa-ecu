@@ -161,7 +161,7 @@ button {
 }
 
 .game-author {
-  font-size: 1.9rem;
+  font-size: 0.95rem;
   color: var(--color-text-muted);
   font-weight: 400;
   font-style: italic;
