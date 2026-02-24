@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="3 en Raya - Juego clásico con temática DoTerra por Suzanna Valles">
+  <meta name="theme-color" content="#7b5aa6">
+  <title>Tres en Raya | Suzanna Valles</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-card">
+    <header class="game-header">
+      <img class="brand-logo" src="doterra%20logo%20up%20right.png" alt="dōTERRA" loading="eager">
+      <div class="title-group">
+        <h1 class="game-title">Tres en Raya</h1>
+        <p class="game-author">by Suzanna Valles (Ecuador)</p>
+      </div>
+    </header>
+
+    <section class="players" aria-label="Jugadores">
+      <div class="player-card" id="player-x" data-player="x">
+        <div class="player-avatar">
+          <img src="iconp1.jpg" alt="Lavender">
+        </div>
+        <span class="player-name">Lavender</span>
+        <span class="player-badge">X</span>
+      </div>
+      
+      <div class="vs-divider">
+        <span class="vs-text">VS</span>
+      </div>
+      
+      <div class="player-card" id="player-o" data-player="o">
+        <div class="player-avatar">
+          <img src="iconp2.jpg" alt="Peppermint">
+        </div>
+        <span class="player-name">Peppermint</span>
+        <span class="player-badge">O</span>
+      </div>
+    </section>
+
+    <div class="turn-indicator" role="status" aria-live="polite">
+      <div class="turn-avatar">
+        <img id="turn-img" src="iconp1.jpg" alt="">
+      </div>
+      <span class="turn-text">Turno de <strong id="turn-name">Lavender</strong></span>
+    </div>
+
+    <section class="game-board" aria-label="Tablero de juego">
+      <div class="board-grid" id="board" role="grid">
+        <button class="cell" data-index="0" aria-label="Celda 1"></button>
+        <button class="cell" data-index="1" aria-label="Celda 2"></button>
+        <button class="cell" data-index="2" aria-label="Celda 3"></button>
+        <button class="cell" data-index="3" aria-label="Celda 4"></button>
+        <button class="cell" data-index="4" aria-label="Celda 5"></button>
+        <button class="cell" data-index="5" aria-label="Celda 6"></button>
+        <button class="cell" data-index="6" aria-label="Celda 7"></button>
+        <button class="cell" data-index="7" aria-label="Celda 8"></button>
+        <button class="cell" data-index="8" aria-label="Celda 9"></button>
+      </div>
+    </section>
+
+    <button class="btn-primary" id="reset-btn">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+      </svg>
+      Nuevo Juego
+    </button>
+
+    <section class="score-board" aria-label="Puntuación">
+      <div class="score-card">
+        <div class="score-avatar">
+          <img src="iconp1.jpg" alt="">
+        </div>
+        <div class="score-info">
+          <span class="score-label">Lavender</span>
+          <span class="score-value" id="score-x">0</span>
+        </div>
+      </div>
+      
+      <div class="score-divider">
+        <span class="divider-line"></span>
+        <span class="divider-text">VS</span>
+        <span class="divider-line"></span>
+      </div>
+      
+      <div class="score-card">
+        <div class="score-avatar">
+          <img src="iconp2.jpg" alt="">
+        </div>
+        <div class="score-info">
+          <span class="score-label">Peppermint</span>
+          <span class="score-value" id="score-o">0</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="draws-counter">
+      <span class="draws-label">Empates</span>
+      <span class="draws-value" id="score-draws">0</span>
+    </div>
+
+    <p class="tagline">!Persigue lo que es puro!</p>
+
+    <!-- Result Modal -->
+    <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+      <div class="modal-backdrop"></div>
+      <div class="modal-content">
+        <div class="modal-winner">
+          <img id="modal-img" src="" alt="">
+          <div class="winner-glow"></div>
+        </div>
+        <h2 class="modal-title" id="modal-title"></h2>
+        <p class="modal-message" id="modal-message"></p>
+        <button class="btn-primary btn-large" id="modal-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+          </svg>
+          Jugar de Nuevo
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
