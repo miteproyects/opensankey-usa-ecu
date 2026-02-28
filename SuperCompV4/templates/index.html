@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperComp V4 - Consulta R.U.C.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Background effects -->
+        <div class="gradient-bg"></div>
+        <div class="noise-overlay"></div>
+        
+        <!-- Main card -->
+        <main class="main-card">
+            <header class="card-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="4"/>
+                            <path d="M9 12l2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <h1>SuperComp</h1>
+                        <span class="version">V4</span>
+                    </div>
+                </div>
+                <p class="subtitle">Sistema de Consulta R.U.C.</p>
+            </header>
+
+            <section class="input-section">
+                <!-- Year Dropdown -->
+                <div class="input-group">
+                    <label for="year-select">Año a consultar</label>
+                    <div class="select-wrapper">
+                        <select id="year-select">
+                            <option value="" disabled selected>Selecciona un año</option>
+                            {% for year in years %}
+                            <option value="{{ year }}">{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                        <span class="select-arrow">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M6 9l6 6 6-6"/>
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- RUC Input -->
+                <div class="input-group">
+                    <label for="ruc-input">Número de R.U.C.</label>
+                    <div class="input-wrapper">
+                        <input 
+                            type="text" 
+                            id="ruc-input" 
+                            maxlength="13" 
+                            placeholder="0000000000000"
+                            autocomplete="off"
+                        >
+                        <span class="input-hint">13 dígitos</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+
+                <button id="consultar-btn" class="consultar-btn" disabled>
+                    <span class="btn-text">Consultar</span>
+                    <span class="btn-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="M21 21l-4.35-4.35"/>
+                        </svg>
+                    </span>
+                    <div class="btn-shine"></div>
+                </button>
+            </section>
+
+            <section class="status-section" id="status-section">
+                <div class="status-content hidden" id="status-content"></div>
+            </section>
+
+            <footer class="card-footer">
+                <button id="ver-historial" class="link-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Ver historial
+                </button>
+                <span class="divider">|</span>
+                <span class="save-location">Guardado en: R.U.C. consultados/</span>
+            </footer>
+        </main>
+
+        <!-- History modal -->
+        <div class="modal" id="history-modal">
+            <div class="modal-backdrop"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Historial de Consultas</h2>
+                    <button class="close-btn" id="close-modal">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <ul class="history-list" id="history-list"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

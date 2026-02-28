@@ -1,0 +1,57 @@
+═══════════════════════════════════════════════════════════════════════
+                    SuperComp V4 - CÓMO USAR
+═══════════════════════════════════════════════════════════════════════
+
+📋 DESCRIPCIÓN
+---------------
+Programa para consultar información de compañías en la Supercias 
+usando el número de RUC.
+
+🚀 CÓMO INICIAR
+---------------
+1. Doble clic en "SuperCompV4.command"
+2. Se abrirá automáticamente el navegador en http://localhost:8889
+
+📝 PASOS PARA CONSULTAR
+-------------------------
+1. Selecciona el AÑO (2020-2024)
+2. Escribe el RUC de 13 dígitos
+3. Haz clic en "Consultar"
+4. Espera a que Chrome llegue al CAPTCHA
+5. La web mostrará el CAPTCHA → Escríbelo → Enter
+6. El programa hará todo automáticamente:
+   - Escribe CAPTCHA y envía
+   - Espera página de compañía
+   - INTENTA hacer clic en "Información anual presentada"
+   - Toma screenshots ANTES y DESPUÉS del clic
+   - Chrome se MANTIENE ABIERTO
+
+📸 SCREENSHOTS DE VERIFICACIÓN
+--------------------------------
+En la carpeta "R.U.C. consultados/" se guardan:
+• BEFORE_CLICK_[RUC]_[hora].png → Página ANTES de intentar el clic
+• AFTER_CLICK_[RUC]_[hora].png → Página DESPUÉS del clic
+• Compara ambos para verificar si funcionó
+
+🛑 CERRAR CHROME
+----------------
+Cuando termines de verificar, cierra Chrome manualmente.
+
+📂 ARCHIVOS GENERADOS
+----------------------
+• RUC_[número]_[año]_[fecha].txt → Registro de consulta
+• RUC_[número]_SUPERCIAS_[fecha].txt → Estado del proceso
+• BEFORE_CLICK_*.png → Screenshot antes del clic
+• AFTER_CLICK_*.png → Screenshot después del clic
+• captcha_*.png → Imagen del CAPTCHA
+
+⚠️ NOTAS
+---------
+• Chrome se mantiene abierto para que verifiques el resultado
+• Revisa los screenshots BEFORE/AFTER para confirmar el clic
+• Si el clic no funcionó, revisa el screenshot BEFORE_CLICK
+• Cierra Chrome manualmente cuando termines
+
+═══════════════════════════════════════════════════════════════════════
+Versión: V4 - Verificación visual con screenshots
+═══════════════════════════════════════════════════════════════════════

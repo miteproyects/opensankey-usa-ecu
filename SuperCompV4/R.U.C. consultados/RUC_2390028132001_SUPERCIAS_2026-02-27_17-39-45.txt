@@ -1,0 +1,6 @@
+R.U.C.: 2390028132001
+Fecha: 2026-02-27 17:39:45
+Estado: Error: Page.wait_for_selector: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("img[src*=\"captcha\"]") to be visible
+

@@ -1,0 +1,8 @@
+R.U.C.: 2390028132001
+Fecha: 2026-02-27 18:32:20
+Estado: Error: Page.wait_for_selector: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("img[src*=\"captcha\"]") to be visible
+    - waiting for" https://appscvsgen.supercias.gob.ec/consultaCompanias/societario/informacionCompanias.jsf" navigation to finish...
+    - navigated to "https://appscvsgen.supercias.gob.ec/consultaCompanias/societario/informacionCompanias.jsf"
+

@@ -1,0 +1,10 @@
+R.U.C.: 2390028132001
+Fecha: 2026-02-27 18:13:55
+Estado: Error: ElementHandle.click: Element is not attached to the DOM
+Call log:
+  - attempting click action
+    - waiting for element to be visible, enabled and stable
+    - element is not visible
+  - retrying click action
+    - waiting for element to be visible, enabled and stable
+

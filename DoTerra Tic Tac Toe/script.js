@@ -238,79 +238,9 @@ function handleKeyDown(e) {
   }
 }
 
-// ===== Visitor Counter using JSONBin.io (Reliable Global Counter) =====
-const JSONBIN_API_KEY = '$2a$10$YourApiKeyHere'; // Free tier - 10k requests/month
-const JSONBIN_BIN_ID = '65d9f9e5dc74654018a1a0f0'; // Unique bin for this game
-
-async function updateVisitorCounter() {
-  const counterElement = document.getElementById('visitor-count');
-  if (!counterElement) return;
-  
-  // Check if this is a new session (not just a refresh)
-  const sessionKey = 'tresEnRayaSession';
-  const lastVisit = sessionStorage.getItem(sessionKey);
-  const isNewSession = !lastVisit;
-  
-  // Mark session
-  sessionStorage.setItem(sessionKey, Date.now().toString());
-  
-  try {
-    // Get current count from JSONBin
-    const getResponse = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
-      method: 'GET',
-      headers: {
-        'X-Master-Key': JSONBIN_API_KEY
-      }
-    });
-    
-    if (!getResponse.ok) throw new Error('Failed to get count');
-    
-    const getData = await getResponse.json();
-    let currentCount = getData.record?.count || 0;
-    
-    // Only increment if it's a new session
-    if (isNewSession) {
-      currentCount++;
-      
-      // Update the count
-      await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Master-Key': JSONBIN_API_KEY
-        },
-        body: JSON.stringify({ count: currentCount })
-      });
-    }
-    
-    counterElement.textContent = currentCount.toLocaleString();
-    localStorage.setItem('tresEnRayaGlobalCount', currentCount.toString());
-    
-  } catch (error) {
-    console.error('Counter error:', error);
-    
-    // Fallback: estimate based on local data
-    const cached = localStorage.getItem('tresEnRayaGlobalCount');
-    const localCount = parseInt(localStorage.getItem('tresEnRayaLocalCount') || '0');
-    
-    if (isNewSession) {
-      const newLocalCount = localCount + 1;
-      localStorage.setItem('tresEnRayaLocalCount', newLocalCount.toString());
-    }
-    
-    // Show cached global + local estimate
-    const displayCount = cached ? parseInt(cached) + localCount : localCount || 1;
-    counterElement.textContent = displayCount.toLocaleString();
-  }
-}
-
 // ===== Start Game =====
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    init();
-    updateVisitorCounter();
-  });
+  document.addEventListener('DOMContentLoaded', init);
 } else {
   init();
-  updateVisitorCounter();
 }
