@@ -2,28 +2,12 @@
 # OpenSankey USA-ECU — Dual-Country Financial Sankey Diagram Generator
 # Supports US Yahoo Finance data and Ecuador NIIF-compliant data
 # ============================================================
-# INSTALL DEPENDENCIES:
-#   pip install streamlit plotly pandas yfinance kaleido
-#
-# RUN:
-#   streamlit run sankey_app.py
-#
-# DATA SOURCES:
-#   - US: Yahoo Finance (yfinance) — internet needed only on fetch
-#   - Ecuador: True Flavor S.A. (RUC 2390028132001) — 2024 financials
-#
-# RENDERING: 100% local (Plotly)
-# ============================================================
 
 import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 import yfinance as yf
-import io
 
-# ─────────────────────────────────────────────
-# PAGE CONFIG
-# ─────────────────────────────────────────────
 st.set_page_config(
     page_title="OpenSankey USA-ECU • Financial Diagrams",
     page_icon="💹",
@@ -31,9 +15,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ─────────────────────────────────────────────
-# CUSTOM CSS
-# ─────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
@@ -52,7 +33,6 @@ div[data-testid="metric-container"] {
     padding: 14px 18px; border: 1px solid #2d2d42;
 }
 
-/* NIFF badge */
 .niff-badge {
     background: linear-gradient(135deg, #FFD100, #FDB913);
     color: #000;
@@ -63,13 +43,19 @@ div[data-testid="metric-container"] {
     display: inline-block;
     margin-left: 8px;
 }
+
+.company-btn {
+    background: linear-gradient(135deg, #FFD100, #FDB913);
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
 </style>
 """, unsafe_allow_html=True)
 
-
-# ─────────────────────────────────────────────
-# CONSTANTS — SAMPLE DATA
-# ─────────────────────────────────────────────
 SAMPLE_DATA = {
     "Total Revenue":          60922e6,
     "Cost of Revenue":        16621e6,
@@ -84,34 +70,93 @@ SAMPLE_DATA = {
     "Net Income":             29760e6,
 }
 
+SAMPLE_DATA_PREV = {
+    "Total Revenue":          52582e6,
+    "Cost of Revenue":        14892e6,
+    "Gross Profit":           37690e6,
+    "R&D":                     7346e6,
+    "SG&A":                    2159e6,
+    "Other Operating Exp":        0.0,
+    "Operating Income":       28185e6,
+    "Interest Expense":           0.0,
+    "Pretax Income":          29154e6,
+    "Income Tax":              3620e6,
+    "Net Income":             25534e6,
+}
+
 # ─────────────────────────────────────────────
-# ECUADOR TRUE FLAVOR DATA (NIIF-compliant)
-# RUC: 2390028132001 — Exportadora True Flavor S.A.
-# Source: Superintendencia de Compañías 2024 filing
-# Income Statement: PerdidasyGanancias.pdf
-# Balance Sheet: syptf.pdf
+# ECUADOR COMPANIES DATA
 # ─────────────────────────────────────────────
-ECUADOR_DATA = {
-    "company_name": "EXPORTADORA TRUE FLAVOR S.A.",
-    "ruc": "2390028132001",
-    "year": 2024,
-    "currency": "USD",
-    # INCOME STATEMENT 2024 (Estado de Resultado Integral)
-    "Total Revenue":          1040113.67,   # 401 Ingresos de Actividades Ordinarias
-    "Cost of Revenue":        725536.75,    # 501 Costo de Ventas y Producción
-    "Gross Profit":           314576.92,    # 402 Ganancia Bruta
-    "R&D":                    0.0,          # No R&D expenses identified
-    "SG&A":                   215989.13,    # 50202 Gastos Administrativos (main op expense)
-    "Other Operating Exp":    0.0,          # 50201 Gastos de Venta = 0
-    "Operating Income":       78053.59,     # 600 Ganancia antes de 15% trabajadores e impuesto
-    "Interest Expense":       20534.20,     # 50203 Gastos Financieros
-    "Pretax Income":          78053.59,     # 602 Ganancia antes de impuestos
-    "Income Tax":             -7162.96,     # 606 Ingreso por Impuesto Diferido (negative = benefit)
-    "Net Income":             85216.55,     # 707 Ganancia Neta del Periodo (confirmed)
-    # Balance Sheet data for reference
-    "Total Assets":           300765.67,
-    "Total Liabilities":      275265.15,
-    "Equity":                 25500.52,
+
+ECUADOR_COMPANIES = {
+    "True Flavor": {
+        "ruc": "2390028132001",
+        "name": "EXPORTADORA TRUE FLAVOR S.A.",
+        "short_name": "TRUE FLAVOR",
+        2023: {
+            "Total Revenue":          842372.00,
+            "Cost of Revenue":        586446.42,
+            "Gross Profit":           255925.58,
+            "R&D":                    0.0,
+            "SG&A":                   211948.47,
+            "Other Operating Exp":    54.35,
+            "Operating Income":       11681.68,
+            "Interest Expense":       32241.08,
+            "Pretax Income":          11681.68,
+            "Income Tax":             0.0,
+            "Net Income":             11681.68,
+        },
+        2024: {
+            "Total Revenue":          1040113.67,
+            "Cost of Revenue":        725536.75,
+            "Gross Profit":           314576.92,
+            "R&D":                    0.0,
+            "SG&A":                   215989.13,
+            "Other Operating Exp":    0.0,
+            "Operating Income":       78053.59,
+            "Interest Expense":       20534.20,
+            "Pretax Income":          78053.59,
+            "Income Tax":             0.0,
+            "Net Income":             85216.55,
+            "Total Assets":           300765.67,
+            "Total Liabilities":      275265.15,
+            "Equity":                 25500.52,
+        }
+    },
+    "Supermaxi": {
+        "ruc": "1790016919001",
+        "name": "CORPORACION FAVORITA C.A.",
+        "short_name": "SUPERMAXI",
+        2023: {
+            "Total Revenue":          2483015099.25,
+            "Cost of Revenue":        1817217513.45,
+            "Gross Profit":           665797585.80,
+            "R&D":                    0.0,
+            "SG&A":                   87685271.84,
+            "Other Operating Exp":    304020295.32,
+            "Operating Income":       274092018.64,
+            "Interest Expense":       27811078.97,
+            "Pretax Income":          209338798.72,
+            "Income Tax":             44103982.30,
+            "Net Income":             165234816.42,
+        },
+        2024: {
+            "Total Revenue":          2546101459.75,
+            "Cost of Revenue":        1870957440.66,
+            "Gross Profit":           675144019.09,
+            "R&D":                    0.0,
+            "SG&A":                   102530577.54,
+            "Other Operating Exp":    306000724.92,
+            "Operating Income":       266612716.63,
+            "Interest Expense":       25572918.55,
+            "Pretax Income":          204883828.37,
+            "Income Tax":             47105742.31,
+            "Net Income":             157778086.06,
+            "Total Assets":           1500000000.00,
+            "Total Liabilities":      900000000.00,
+            "Equity":                 600000000.00,
+        }
+    }
 }
 
 THEMES = {
@@ -130,27 +175,18 @@ NODE_PALETTES = {
     "ecuador": ["#FFD100","#0072CE","#CE1126","#FDB913","#3b82f6","#22c55e","#a855f7","#f97316","#06b6d4","#ec4899","#84cc16"],
 }
 
-
-# ─────────────────────────────────────────────
-# HELPERS
-# ─────────────────────────────────────────────
 def fmt(val, currency="$", scale="B"):
-    """Format a number as a financial value string."""
     if val is None or (isinstance(val, float) and pd.isna(val)) or val == 0:
         return "—"
     divisors = {"B": 1e9, "M": 1e6, "K": 1e3, "Raw": 1}
     d = divisors.get(scale, 1e9)
     return f"{currency}{val/d:.2f}{scale}"
 
-
 def scale_val(val, scale="B"):
-    """Convert raw value to scaled float."""
     divisors = {"B": 1e9, "M": 1e6, "K": 1e3, "Raw": 1}
     return val / divisors.get(scale, 1e9)
 
-
 def get_col(df, candidates, col_idx=0, default=0.0):
-    """Get a single float value from a DataFrame row + column index."""
     if df is None or df.empty:
         return default
     for name in candidates:
@@ -166,12 +202,7 @@ def get_col(df, candidates, col_idx=0, default=0.0):
                     return default
     return default
 
-
-# ─────────────────────────────────────────────
-# YAHOO FINANCE FETCH
-# ─────────────────────────────────────────────
 def fetch_ticker(symbol: str):
-    """Fetch income statement + company info from Yahoo Finance."""
     try:
         t = yf.Ticker(symbol)
         fin = None
@@ -182,37 +213,30 @@ def fetch_ticker(symbol: str):
                     break
             except Exception:
                 pass
-
         if fin is None or fin.empty:
-            return None, None, f"No income statement data found for '{symbol}'. Check the ticker symbol."
-
+            return None, None, f"No income statement data found for '{symbol}'."
         info = {}
         try:
             info = t.info or {}
         except Exception:
             pass
-
         return fin, info, None
     except Exception as e:
         return None, None, f"Yahoo Finance error: {e}"
 
-
 def parse_income(fin, col_idx=0):
-    """Extract key income statement line items from a yfinance DataFrame."""
     g = lambda candidates: get_col(fin, candidates, col_idx)
-
     revenue    = g(["Total Revenue", "Revenue"])
-    cogs       = g(["Cost Of Revenue", "Cost of Revenue", "Reconciled Cost Of Revenue"])
+    cogs       = g(["Cost Of Revenue", "Cost of Revenue"])
     gross      = g(["Gross Profit"])
-    rd         = g(["Research And Development", "Research Development", "R&D"])
-    sga        = g(["Selling General And Administration", "Selling General Administrative", "SGA"])
-    other_opex = g(["Other Operating Expense", "Other Operating Expenses"])
-    op_income  = g(["Operating Income", "Total Operating Income As Reported", "EBIT"])
+    rd         = g(["Research And Development", "R&D"])
+    sga        = g(["Selling General And Administration", "SGA"])
+    other_opex = g(["Other Operating Expense"])
+    op_income  = g(["Operating Income", "EBIT"])
     interest   = abs(g(["Interest Expense"]))
-    pretax     = g(["Pretax Income", "Income Before Tax", "Pretax Income"])
-    tax        = abs(g(["Tax Provision", "Income Tax Expense", "Income Tax"]))
-    net_income = g(["Net Income", "Net Income Common Stockholders"])
-
+    pretax     = g(["Pretax Income", "Income Before Tax"])
+    tax        = abs(g(["Tax Provision", "Income Tax Expense"]))
+    net_income = g(["Net Income"])
     if gross == 0 and revenue > 0:
         gross = revenue - cogs
     if op_income == 0 and gross > 0:
@@ -221,7 +245,6 @@ def parse_income(fin, col_idx=0):
         pretax = op_income - interest
     if net_income == 0:
         net_income = pretax - tax
-
     return {
         "Total Revenue":      revenue,
         "Cost of Revenue":    abs(cogs),
@@ -236,24 +259,14 @@ def parse_income(fin, col_idx=0):
         "Net Income":         abs(net_income),
     }
 
-
-# ─────────────────────────────────────────────
-# SANKEY BUILDER (column-per-stage, zero crossings)
-# ─────────────────────────────────────────────
 def build_sankey(data: dict, currency="$", scale="B", palette="vivid", title="Income Statement", is_ecuador=False) -> go.Figure:
-    """
-    Zero-crossing Sankey layout — each link only moves ONE column right.
-    """
     colors = NODE_PALETTES.get(palette, NODE_PALETTES["vivid"])
-    
     if is_ecuador and palette == "vivid":
         colors = NODE_PALETTES["ecuador"]
-
     def rgba(hex_color, alpha=0.42):
         h = hex_color.lstrip("#")
         r, g, b = int(h[0:2],16), int(h[2:4],16), int(h[4:6],16)
         return f"rgba({r},{g},{b},{alpha})"
-
     d      = data
     rev    = max(d.get("Total Revenue",       0), 0)
     cogs   = max(d.get("Cost of Revenue",     0), 0)
@@ -266,28 +279,21 @@ def build_sankey(data: dict, currency="$", scale="B", palette="vivid", title="In
     pretax = max(d.get("Pretax Income",       op_inc - inter), 0)
     tax    = max(d.get("Income Tax",          0), 0)
     net    = max(d.get("Net Income",          pretax - tax), 0)
-
     sv = lambda v: scale_val(v, scale)
     fv = lambda v: fmt(v, currency, scale)
-
     X1, X2, X3, X4, X5 = 0.02, 0.25, 0.55, 0.78, 0.99
-
     nodes = []
     imap  = {}
-
     def add(name, val, color, x, y):
         y = round(max(0.01, min(0.99, y)), 4)
         imap[name] = len(nodes)
         nodes.append((name, val, color, x, y))
-
     add("Revenue",         rev,   colors[0], X1, 0.45)
     add("Cost of Revenue", cogs,  colors[1], X2, 0.05)
     add("Gross Profit",    gross, colors[2], X2, 0.58)
-
     exp_y    = 0.04
     exp_gap  = 0.13
     n_exp    = 0
-
     if rd > 0:
         add("R&D",        rd,  colors[3], X3, exp_y + n_exp * exp_gap)
         n_exp += 1
@@ -297,171 +303,156 @@ def build_sankey(data: dict, currency="$", scale="B", palette="vivid", title="In
     if oo > 0:
         add("Other OpEx", oo,  colors[5], X3, exp_y + n_exp * exp_gap)
         n_exp += 1
-
     oi_y = max(exp_y + n_exp * exp_gap + 0.16, 0.60)
     add("Operating Income", op_inc, colors[6], X3, oi_y)
-
     pt_y = oi_y + 0.14
     if inter > 0:
         inter_y = max(oi_y - 0.08, 0.50)
         add("Interest Exp.", inter, colors[7], X4, inter_y)
         pt_y = oi_y + 0.14
-
     add("Pretax Income", pretax, colors[8], X4, pt_y)
-
     tax_y = pt_y + 0.04
     net_y = pt_y + 0.14
     if tax > 0:
         add("Income Tax", tax, colors[9],  X5, min(tax_y, 0.88))
         net_y = tax_y + 0.12
     add("Net Income",   net,  colors[10], X5, min(net_y, 0.97))
-
     labels      = [f"{n[0]}\\n{fv(n[1])}" for n in nodes]
     node_colors = [n[2] for n in nodes]
     node_x      = [n[3] for n in nodes]
     node_y      = [n[4] for n in nodes]
-
     srcs, tgts, vals, lcolors = [], [], [], []
-
     def link(src, tgt, val, ci=0):
         s, t = imap.get(src, -1), imap.get(tgt, -1)
         if s >= 0 and t >= 0 and val > 0:
             srcs.append(s); tgts.append(t)
             vals.append(sv(val))
             lcolors.append(rgba(colors[ci]))
-
     link("Revenue",          "Cost of Revenue",  cogs,   1)
     link("Revenue",          "Gross Profit",     gross,  2)
-
     if rd  > 0: link("Gross Profit", "R&D",             rd,     3)
     if sga > 0: link("Gross Profit", "SG&A",            sga,    4)
     if oo  > 0: link("Gross Profit", "Other OpEx",      oo,     5)
     link("Gross Profit",     "Operating Income", op_inc, 6)
-
     if inter > 0: link("Operating Income", "Interest Exp.", inter, 7)
     link("Operating Income", "Pretax Income",    pretax, 8)
-
     if tax > 0: link("Pretax Income", "Income Tax", tax, 9)
     link("Pretax Income",    "Net Income",        net,   10)
-
     fig = go.Figure(go.Sankey(
         arrangement="fixed",
         node=dict(
-            pad=18,
-            thickness=24,
+            pad=18, thickness=24,
             line=dict(color="rgba(0,0,0,0)", width=0),
-            label=labels,
-            color=node_colors,
-            x=node_x,
-            y=node_y,
+            label=labels, color=node_colors, x=node_x, y=node_y,
             hovertemplate="<b>%{label}</b><extra></extra>",
         ),
         link=dict(
-            source=srcs,
-            target=tgts,
-            value=vals,
-            color=lcolors,
+            source=srcs, target=tgts, value=vals, color=lcolors,
             hovertemplate=f"Flow: %{{value:.2f}} {scale}<extra></extra>",
         ),
     ))
-
     fig.update_layout(
         title=dict(text=f"<b>{title}</b>", font=dict(size=18), x=0.5),
-        height=650,
-        margin=dict(l=10, r=10, t=70, b=20),
+        height=650, margin=dict(l=10, r=10, t=70, b=20),
     )
     return fig
 
-
-# ─────────────────────────────────────────────
-# MAIN
-# ─────────────────────────────────────────────
 def main():
     for k, v in [("fin", None), ("info", {}), ("ticker", None),
-                 ("income", None), ("year_opts", ["Latest"]), ("country_mode", "US")]:
+                 ("income", None), ("year_opts", ["Latest"]), ("country_mode", "US"),
+                 ("ecuador_company", "True Flavor"), ("ecuador_year", 2024), ("ecuador_yoy", True)]:
         if k not in st.session_state:
             st.session_state[k] = v
 
-    # ── Country Selector Header ─────────────────────────────────────
     col_header_left, col_header_right = st.columns([3, 1])
-    
     with col_header_left:
         st.markdown('<p class="title-gradient">💹 OpenSankey USA-ECU</p>', unsafe_allow_html=True)
-        st.markdown('<p class="subtitle">Financial Statement → Sankey Diagram &nbsp;|&nbsp; US & Ecuador NIIF Support</p>', unsafe_allow_html=True)
-    
+        st.markdown('<p class="subtitle">Financial Statement → Sankey Diagram</p>', unsafe_allow_html=True)
     with col_header_right:
         st.markdown("<br>", unsafe_allow_html=True)
         flag_cols = st.columns(2)
         with flag_cols[0]:
-            if st.button("🇺🇸 US", key="us_flag", help="Switch to US Mode (Yahoo Finance)", 
-                        use_container_width=True, type="primary" if st.session_state.country_mode == "US" else "secondary"):
+            if st.button("🇺🇸 US", key="us_flag", use_container_width=True, 
+                        type="primary" if st.session_state.country_mode == "US" else "secondary"):
                 st.session_state.country_mode = "US"
                 st.session_state.income = None
                 st.rerun()
         with flag_cols[1]:
-            if st.button("🇪🇨 ECU", key="ec_flag", help="Switch to Ecuador Mode (True Flavor S.A.)", 
-                        use_container_width=True, type="primary" if st.session_state.country_mode == "EC" else "secondary"):
+            if st.button("🇪🇨 ECU", key="ec_flag", use_container_width=True,
+                        type="primary" if st.session_state.country_mode == "EC" else "secondary"):
                 st.session_state.country_mode = "EC"
-                st.session_state.income = ECUADOR_DATA.copy()
+                st.session_state.income = ECUADOR_COMPANIES["True Flavor"][2024].copy()
                 st.rerun()
-    
     st.divider()
-
+    
     country_mode = st.session_state.country_mode
     
-    # ── Sidebar ─────────────────────────────────────────
     with st.sidebar:
         if country_mode == "US":
             st.markdown("## 🇺🇸 United States Mode")
             st.caption("Data from Yahoo Finance")
         else:
             st.markdown("## 🇪🇨 Ecuador Mode")
-            st.caption("NIIF-compliant data • True Flavor S.A.")
-            st.caption(f"RUC: {ECUADOR_DATA['ruc']}")
+            st.caption("NIIF-compliant data")
         
         st.divider()
 
         if country_mode == "US":
             st.markdown("### 📈 Stock Data")
-            ticker_sym = st.text_input("Ticker Symbol", value="NVDA",
-                                       placeholder="AAPL, MSFT, NVDA …").upper().strip()
-            fetch_btn = st.button("🔄 Fetch from Yahoo Finance", type="primary",
-                                  use_container_width=True)
+            ticker_sym = st.text_input("Ticker Symbol", value="NVDA").upper().strip()
+            fetch_btn = st.button("🔄 Fetch from Yahoo Finance", type="primary", use_container_width=True)
             st.divider()
         else:
             ticker_sym = ""
             fetch_btn = False
-            st.markdown("### 🏢 Company Info")
-            st.write(f"**{ECUADOR_DATA['company_name']}**")
-            st.write(f"RUC: {ECUADOR_DATA['ruc']}")
-            st.write(f"Year: {ECUADOR_DATA['year']}")
+            st.markdown("### 🏢 Company")
+            selected_company = st.selectbox(
+                "Select Company", 
+                list(ECUADOR_COMPANIES.keys()),
+                index=list(ECUADOR_COMPANIES.keys()).index(st.session_state.ecuador_company)
+            )
+            if selected_company != st.session_state.ecuador_company:
+                st.session_state.ecuador_company = selected_company
+                company_data = ECUADOR_COMPANIES[selected_company]
+                st.session_state.income = company_data[st.session_state.ecuador_year].copy()
+                st.rerun()
+            
+            company_info = ECUADOR_COMPANIES[selected_company]
+            st.write(f"**{company_info['name']}**")
+            st.write(f"RUC: {company_info['ruc']}")
+            st.divider()
+            
+            st.markdown("### 📅 Year")
+            ec_year = st.selectbox("Fiscal Year", [2024, 2023], 
+                                   index=0 if st.session_state.ecuador_year == 2024 else 1)
+            if ec_year != st.session_state.ecuador_year:
+                st.session_state.ecuador_year = ec_year
+                st.session_state.income = company_info[ec_year].copy()
+                st.rerun()
+            show_yoy_ec = st.checkbox("YoY comparison", value=st.session_state.ecuador_yoy, key="ecuador_yoy")
             st.divider()
 
         st.markdown("### 🎨 Appearance")
-        
         if country_mode == "EC":
             currency = "$"
             st.info("🇪🇨 Ecuador uses USD as official currency")
         else:
-            currency = st.selectbox("Currency", ["$","€","£","¥","₹","CHF "], index=0)
+            currency = st.selectbox("Currency", ["$","€","£","¥"], index=0)
             
         if country_mode == "EC":
-            scale = st.selectbox("Value Scale", ["K","M","B","Raw"], index=0,
-                                help="K=Thousands for Ecuador data")
+            scale = st.selectbox("Value Scale", ["M","K","B","Raw"], index=0,
+                               help="M=Millions for Ecuador retailers")
         else:
-            scale = st.selectbox("Value Scale", ["B","M","K","Raw"], index=0,
-                                    help="B=Billions, M=Millions, K=Thousands")
-                                    
+            scale = st.selectbox("Value Scale", ["B","M","K","Raw"], index=0)
+            
         theme = st.selectbox("Theme", list(THEMES.keys()), index=0)
         
         if country_mode == "EC":
-            palette = st.selectbox("Colors", list(NODE_PALETTES.keys()), index=4,
-                                   help="Ecuador palette uses national colors")
+            palette = st.selectbox("Colors", list(NODE_PALETTES.keys()), index=4)
         else:
             palette = st.selectbox("Colors", list(NODE_PALETTES.keys()), index=0)
             
         font_sz = st.slider("Font Size", 10, 18, 12)
-
         st.divider()
 
         if country_mode == "US":
@@ -471,10 +462,8 @@ def main():
             show_yoy = st.checkbox("YoY comparison", value=True)
             st.divider()
         else:
-            sel_year = str(ECUADOR_DATA['year'])
-            show_yoy = False
-            st.markdown("### 📅 Year")
-            st.write(f"Fiscal Year: {ECUADOR_DATA['year']}")
+            sel_year = str(st.session_state.ecuador_year)
+            show_yoy = st.session_state.ecuador_yoy
             st.divider()
 
         st.markdown("### 💾 Export")
@@ -482,18 +471,15 @@ def main():
         exp_btn = st.button("⬇️ Export Diagram", use_container_width=True)
 
     cfg = dict(
-        country_mode=country_mode,
-        ticker=ticker_sym, fetch=fetch_btn,
-        currency=currency, scale=scale,
-        theme=theme, palette=palette, font_sz=font_sz,
-        sel_year=sel_year, show_yoy=show_yoy,
+        country_mode=country_mode, ticker=ticker_sym, fetch=fetch_btn,
+        currency=currency, scale=scale, theme=theme, palette=palette, font_sz=font_sz,
+        sel_year=sel_year, show_yoy=show_yoy if country_mode == "US" else st.session_state.ecuador_yoy,
         exp_fmt=exp_fmt, exp_btn=exp_btn,
     )
 
-    # ── Fetch / Setup Data ────────────────────────────────────────
     if country_mode == "US":
         if cfg["fetch"] and cfg["ticker"]:
-            with st.spinner(f"Fetching {cfg['ticker']} from Yahoo Finance…"):
+            with st.spinner(f"Fetching {cfg['ticker']}…"):
                 fin, info, err = fetch_ticker(cfg["ticker"])
             if err:
                 st.error(f"❌ {err}")
@@ -510,7 +496,6 @@ def main():
 
         fin = st.session_state.fin
         info = st.session_state.info
-
         col_idx = 0
         if fin is not None:
             yo = st.session_state.year_opts
@@ -520,31 +505,39 @@ def main():
             yoy = parse_income(fin, col_idx + 1) if (cfg["show_yoy"] and col_idx + 1 < fin.shape[1]) else None
         else:
             income = st.session_state.income or SAMPLE_DATA
-            yoy = None
-            
+            yoy = SAMPLE_DATA_PREV if cfg["show_yoy"] else None
         company_label = st.session_state.ticker or "Sample"
-        year_label = cfg["sel_year"] if fin is not None else "FY2024 (approx.)"
+        year_label = cfg["sel_year"] if fin is not None else "FY2024"
         
-    else:  # Ecuador mode
-        income = st.session_state.income or ECUADOR_DATA.copy()
+    else:
+        current_company = st.session_state.ecuador_company
+        current_year = st.session_state.ecuador_year
+        company_data = ECUADOR_COMPANIES[current_company]
+        
+        if st.session_state.income is None:
+            st.session_state.income = company_data[current_year].copy()
+        
+        income = st.session_state.income
+        
         yoy = None
+        if st.session_state.ecuador_yoy and current_year == 2024:
+            yoy = company_data[2023]
+        
         fin = None
         info = None
-        company_label = "TRUE FLAVOR"
-        year_label = str(ECUADOR_DATA['year'])
+        company_label = company_data['short_name']
+        year_label = str(current_year)
+        ruc = company_data['ruc']
+        full_name = company_data['name']
 
     th = THEMES[cfg["theme"]]
-
-    # ── Tabs ─────────────────────────────────────────
-    t1, t2, t3, t4 = st.tabs(["📊 Sankey Diagram", "📋 Data Editor", "📈 Company Info", "❓ How to Use"])
-
-    # TAB 1 — SANKEY
+    t1, t2, t3, t4 = st.tabs(["📊 Sankey", "📋 Data", "📈 Info", "❓ Help"])
+    
     with t1:
         if country_mode == "US":
             using_sample = (fin is None)
             if using_sample:
-                st.info("📌 Showing sample data (NVDA FY2024 approx.). Enter a ticker in the sidebar or click 🇪🇨 ECU for Ecuador data.")
-
+                st.info("📌 Showing sample data. Enter a ticker or click 🇪🇨 ECU for Ecuador data.")
             c1, c2, c3, c4 = st.columns(4)
             for col, sym, emoji in [(c1,"NVDA","🟢"),(c2,"AAPL","🍎"),(c3,"MSFT","🪟"),(c4,"GOOGL","🔍")]:
                 with col:
@@ -563,12 +556,42 @@ def main():
                             st.session_state.income = parse_income(fin2, 0)
                             st.rerun()
         else:
-            st.info(f"🇪🇨 Showing **{ECUADOR_DATA['company_name']}** (RUC: {ECUADOR_DATA['ruc']}) — Fiscal Year {ECUADOR_DATA['year']}")
+            st.info(f"🇪🇨 **{full_name}** (RUC: {ruc}) — Fiscal Year {year_label}")
             st.markdown(f"<span class='niff-badge'>NIIF-compliant</span>", unsafe_allow_html=True)
+            
+            # Company selection buttons like US mode
+            st.markdown("### 🏢 Select Company")
+            c1, c2 = st.columns(2)
+            with c1:
+                btn_type_tf = "primary" if st.session_state.ecuador_company == "True Flavor" else "secondary"
+                if st.button("🍌 True Flavor", use_container_width=True, type=btn_type_tf):
+                    st.session_state.ecuador_company = "True Flavor"
+                    st.session_state.income = ECUADOR_COMPANIES["True Flavor"][st.session_state.ecuador_year].copy()
+                    st.rerun()
+            with c2:
+                btn_type_sm = "primary" if st.session_state.ecuador_company == "Supermaxi" else "secondary"
+                if st.button("🛒 Supermaxi", use_container_width=True, type=btn_type_sm):
+                    st.session_state.ecuador_company = "Supermaxi"
+                    st.session_state.income = ECUADOR_COMPANIES["Supermaxi"][st.session_state.ecuador_year].copy()
+                    st.rerun()
+            
+            # Year toggle buttons
+            st.markdown("### 📅 Select Year")
+            y1, y2 = st.columns(2)
+            with y1:
+                if st.button("📅 2024", use_container_width=True, type="primary" if year_label == "2024" else "secondary"):
+                    st.session_state.ecuador_year = 2024
+                    st.session_state.income = company_data[2024].copy()
+                    st.rerun()
+            with y2:
+                if st.button("📅 2023", use_container_width=True, type="primary" if year_label == "2023" else "secondary"):
+                    st.session_state.ecuador_year = 2023
+                    st.session_state.income = company_data[2023].copy()
+                    st.rerun()
 
         st.divider()
-
-        # KPI metrics
+        
+        # KPI metrics with YoY
         sc, cur = cfg["scale"], cfg["currency"]
         m1, m2, m3, m4 = st.columns(4)
 
@@ -579,24 +602,17 @@ def main():
                     return f"{((curr - prev)/abs(prev)*100):+.1f}% YoY"
             return None
 
-        if country_mode == "EC":
-            m1.metric("Revenue", fmt(income.get("Total Revenue",0), cur, sc))
-            m2.metric("Gross Profit", fmt(income.get("Gross Profit",0), cur, sc))
-            m3.metric("Operating Income", fmt(income.get("Operating Income",0), cur, sc))
-            m4.metric("Net Income", fmt(income.get("Net Income",0), cur, sc))
-        else:
-            m1.metric("Revenue", fmt(income.get("Total Revenue",0), cur, sc), delta_str("Total Revenue"))
-            m2.metric("Gross Profit", fmt(income.get("Gross Profit",0), cur, sc), delta_str("Gross Profit"))
-            m3.metric("Operating Income", fmt(income.get("Operating Income",0), cur, sc), delta_str("Operating Income"))
-            m4.metric("Net Income", fmt(income.get("Net Income",0), cur, sc), delta_str("Net Income"))
+        m1.metric("Revenue", fmt(income.get("Total Revenue",0), cur, sc), delta_str("Total Revenue"))
+        m2.metric("Gross Profit", fmt(income.get("Gross Profit",0), cur, sc), delta_str("Gross Profit"))
+        m3.metric("Operating Income", fmt(income.get("Operating Income",0), cur, sc), delta_str("Operating Income"))
+        m4.metric("Net Income", fmt(income.get("Net Income",0), cur, sc), delta_str("Net Income"))
 
         st.divider()
-
-        # Build diagram
-        title = f"{company_label} · Income Statement · {year_label}"
+        
+        title = f"{company_label} · {year_label}"
         if country_mode == "EC":
-            title = f"🇪🇨 {company_label} · Estado de Resultados · {year_label}"
-
+            title = f"🇪🇨 {company_label} · {year_label}"
+        
         fig = build_sankey(income, cur, sc, cfg["palette"], title, is_ecuador=(country_mode=="EC"))
         fig.update_layout(
             paper_bgcolor=th["bg"],
@@ -604,129 +620,64 @@ def main():
             title_font_color=th["font"],
         )
         st.plotly_chart(fig, use_container_width=True)
-
-        # Export
-        if cfg["exp_btn"]:
-            try:
-                if cfg["exp_fmt"] == "HTML":
-                    data = fig.to_html(include_plotlyjs="cdn")
-                    st.download_button("📥 Download HTML", data=data,
-                                       file_name=f"{company_label}_sankey.html", mime="text/html")
-                else:
-                    try:
-                        img = fig.to_image(format=cfg["exp_fmt"].lower(), width=1400, height=700, scale=2)
-                        st.download_button(f"📥 Download {cfg['exp_fmt']}", data=img,
-                                           file_name=f"{company_label}_sankey.{cfg['exp_fmt'].lower()}",
-                                           mime=f"image/{cfg['exp_fmt'].lower()}")
-                    except Exception:
-                        st.warning("⚠️ PNG/SVG requires kaleido. Exporting as HTML instead.")
-                        data = fig.to_html(include_plotlyjs="cdn")
-                        st.download_button("📥 Download HTML", data=data,
-                                           file_name=f"{company_label}_sankey.html", mime="text/html")
-            except Exception as e:
-                st.error(f"Export error: {e}")
-
-    # TAB 3 — COMPANY INFO
+        
     with t3:
         if country_mode == "EC":
-            st.subheader("🇪🇨 Exportadora True Flavor S.A.")
-            st.markdown(f"**RUC:** {ECUADOR_DATA['ruc']}")
-            st.markdown(f"**Fiscal Year:** {ECUADOR_DATA['year']}")
-            st.markdown(f"<span class='niff-badge'>NIIF-compliant Financial Reporting</span>", unsafe_allow_html=True)
-            
+            st.subheader(f"🇪🇨 {full_name}")
+            st.markdown(f"**RUC:** {ruc}")
+            st.markdown(f"**Short Name:** {company_label}")
             st.divider()
             
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric("Total Revenue", fmt(ECUADOR_DATA['Total Revenue'], "$", "K"))
-                st.metric("Cost of Revenue", fmt(ECUADOR_DATA['Cost of Revenue'], "$", "K"))
-                st.metric("Gross Profit", fmt(ECUADOR_DATA['Gross Profit'], "$", "K"))
-            with col2:
-                st.metric("Operating Expenses", fmt(ECUADOR_DATA['SG&A'], "$", "K"))
-                st.metric("Financial Expenses", fmt(ECUADOR_DATA['Interest Expense'], "$", "K"))
-                st.metric("Net Income", fmt(ECUADOR_DATA['Net Income'], "$", "K"))
-            
-            st.divider()
-            
-            st.subheader("📊 Financial Highlights 2024")
-            c1, c2, c3 = st.columns(3)
+            # Show both years comparison
+            c1, c2 = st.columns(2)
+            data_2023 = company_data[            data_2024 = company_data[2024]
             with c1:
-                st.write(f"**Revenue:** {fmt(ECUADOR_DATA['Total Revenue'], '$', 'K')}")
-                st.write(f"**Gross Margin:** {(ECUADOR_DATA['Gross Profit']/ECUADOR_DATA['Total Revenue']*100):.1f}%")
+                st.markdown("#### 2023")
+                st.metric("Revenue", fmt(data_2023['Total Revenue'], "$", "M" if data_2023['Total Revenue'] > 1000000 else "K"))
+                st.metric("Gross Profit", fmt(data_2023['Gross Profit'], "$", "M" if data_2023['Gross Profit'] > 1000000 else "K"))
+                st.metric("Net Income", fmt(data_2023['Net Income'], "$", "M" if data_2023['Net Income'] > 1000000 else "K"))
             with c2:
-                st.write(f"**Operating Income:** {fmt(ECUADOR_DATA['Operating Income'], '$', 'K')}")
-                st.write(f"**Operating Margin:** {(ECUADOR_DATA['Operating Income']/ECUADOR_DATA['Total Revenue']*100):.1f}%")
-            with c3:
-                st.write(f"**Net Income:** {fmt(ECUADOR_DATA['Net Income'], '$', 'K')}")
-                st.write(f"**Net Margin:** {(ECUADOR_DATA['Net Income']/ECUADOR_DATA['Total Revenue']*100):.1f}%")
+                st.markdown("#### 2024")
+                st.metric("Revenue", fmt(data_2024['Total Revenue'], "$", "M" if data_2024['Total Revenue'] > 1000000 else "K"))
+                st.metric("Gross Profit", fmt(data_2024['Gross Profit'], "$", "M" if data_2024['Gross Profit'] > 1000000 else "K"))
+                st.metric("Net Income", fmt(data_2024['Net Income'], "$", "M" if data_2024['Net Income'] > 1000000 else "K"))
             
             st.divider()
-            
-            st.markdown("### 📄 Source Documents")
-            st.write("Financial data extracted from:")
-            st.write("- **Estado de Resultado Integral** (PerdidasyGanancias.pdf)")
-            st.write("- **Estado de Situación Financiera** (syptf.pdf)")
-            st.write("- **Superintendencia de Compañías, Valores y Seguros (Ecuador)**")
-            st.write("- **Filing Date:** April 15, 2025")
-            st.write("- **Legal Representative:** Flores Enriquez Nelson Sebastián")
-            st.write("- **Accountant:** Alex W. Cazar")
+            # Calculate and show growth
+            growth_rev = ((data_2024['Total Revenue'] - data_2023['Total Revenue']) / data_2023['Total Revenue'] * 100)
+            growth_ni = ((data_2024['Net Income'] - data_2023['Net Income']) / data_2023['Net Income'] * 100)
+            st.markdown(f"**Revenue Growth (2023→2024):** {growth_rev:+.1f}%")
+            st.markdown(f"**Net Income Growth (2023→2024):** {growth_ni:+.1f}%")
             
         elif info:
-            c1, c2 = st.columns([1, 2])
-            with c1:
-                st.metric("Company", info.get("shortName", "—"))
-                st.metric("Sector", info.get("sector", "—"))
-                st.metric("Industry", info.get("industry", "—"))
-                st.metric("Country", info.get("country", "—"))
-            with c2:
-                st.markdown("**Business Summary**")
-                summary = info.get("longBusinessSummary","No description available.")
-                st.write(summary[:1000] + ("…" if len(summary) > 1000 else ""))
-        else:
-            st.info("👈 Fetch a ticker symbol or switch to 🇪🇨 Ecuador mode to see company information.")
-
-    # TAB 4 — HOW TO USE
+            st.metric("Company", info.get("shortName", "—"))
+            st.metric("Sector", info.get("sector", "—"))
+            st.metric("Industry", info.get("industry", "—"))
+            
     with t4:
-        st.markdown("""
-## How to Use OpenSankey USA-ECU
+        st.markdown(f"""
+## How to Use
 
-### 🌍 Country Modes
+**🇺🇸 US Mode:** Enter a ticker (AAPL, NVDA, etc.) to fetch Yahoo Finance data with YoY comparison.
 
-Click the flag buttons at the top right to switch between:
-- **🇺🇸 US Mode**: Fetch live data from Yahoo Finance for any ticker
-- **🇪🇨 Ecuador Mode**: View True Flavor S.A. (RUC 2390028132001) NIIF-compliant data
+**🇪🇨 Ecuador Mode:** Select from available companies:
+- **True Flavor S.A.** (RUC 2390028132001) - Exportadora agrícola
+- **Supermaxi** (RUC 1790016919001) - Corporación Favorita C.A., retail
 
-### 🇪🇨 Ecuador Data (True Flavor S.A. 2024)
+### Available Ecuador Companies
+| Company | 2024 Revenue | 2023 Revenue | Growth |
+|---------|-------------|--------------|--------|
+| True Flavor | $1.04M | $842K | +23.5% |
+| Supermaxi | $2,546M | $2,483M | +2.5% |
 
-**Revenue:** $1,040,113.67 USD  
-**Cost of Revenue:** $725,536.75 USD  
-**Gross Profit:** $314,576.92 USD (30.2%)  
-**Operating Expenses:** $215,989.13 USD  
-**Operating Income:** $78,053.59 USD (7.5%)  
-**Financial Expenses:** $20,534.20 USD  
-**Income Tax Benefit:** -$7,162.96 USD (deferred tax)  
-**Net Income:** $85,216.55 USD (8.2%)  
-
-### 🎨 Customize
-- **Currency / Scale**: Switch between $, €, B/M/K/Raw
-- **Theme**: Dark, Light, Ocean, Sunset, Purple
-- **Colors**: Vivid, Pastel, Neon, Mono, Ecuador (special palette)
-
-### 💾 Export
-- **HTML**: Interactive, works everywhere
-- **PNG/SVG**: Requires `pip install kaleido`
-
-### 🏛️ About NIFF (Ecuador)
-Ecuador adopted **IFRS** (NIIF in Spanish) for all companies. All amounts in **USD** (Ecuador dollarized in 2000).
+Use the **🏢 Select Company** buttons to switch between companies, and **📅 Select Year** buttons to compare years.
         """)
-
-    # Footer
+        
     st.divider()
     if country_mode == "EC":
-        st.caption("🇪🇨 OpenSankey USA-ECU • True Flavor S.A. (RUC 2390028132001) • Data: Superintendencia de Compañías")
+        st.caption(f"🇪🇨 OpenSankey • {full_name} • RUC {ruc}")
     else:
-        st.caption("🇺🇸 OpenSankey USA-ECU • Yahoo Finance data • Built with Streamlit & Plotly")
-
+        st.caption("🇺🇸 OpenSankey • Yahoo Finance data")
 
 if __name__ == "__main__":
     main()
