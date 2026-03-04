@@ -630,7 +630,8 @@ def main():
             
             # Show both years comparison
             c1, c2 = st.columns(2)
-            data_2023 = company_data[            data_2024 = company_data[2024]
+            data_2023 = company_data[2023]
+            data_2024 = company_data[2024]
             with c1:
                 st.markdown("#### 2023")
                 st.metric("Revenue", fmt(data_2023['Total Revenue'], "$", "M" if data_2023['Total Revenue'] > 1000000 else "K"))
