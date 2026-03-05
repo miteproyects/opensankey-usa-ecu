@@ -428,12 +428,93 @@ def sidebar():
 
 
 # ─────────────────────────────────────────────
+# YEAR SELECTOR DROPDOWN (for USA mode)
+# ─────────────────────────────────────────────
+def year_selector_dropdown(ticker: str, emoji: str):
+    """Display a cool year selector dropdown for USA mode companies."""
+    years = list(range(2016, 2026))  # 2016-2025
+
+    # Custom CSS for the dropdown
+    st.markdown("""
+    <style>
+    .year-dropdown-container {
+        background: linear-gradient(135deg, #1e1e2e 0%, #2d2d42 100%);
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid #3d3d5c;
+        margin: 10px 0;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .year-dropdown-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #e9d5ff;
+        margin-bottom: 12px;
+        text-align: center;
+    }
+    .year-dropdown-subtitle {
+        font-size: 0.85rem;
+        color: #9ca3af;
+        margin-bottom: 16px;
+        text-align: center;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    with st.container():
+        st.markdown(f'<div class="year-dropdown-title">{emoji} {ticker}</div>', unsafe_allow_html=True)
+        st.markdown('<div class="year-dropdown-subtitle">Select fiscal year to visualize (includes YoY data)</div>', unsafe_allow_html=True)
+
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            selected_year = st.selectbox(
+                "Fiscal Year",
+                options=years,
+                index=len(years)-1,  # Default to 2025
+                key=f"year_select_{ticker}",
+                label_visibility="collapsed"
+            )
+        with col2:
+            load_clicked = st.button("🚀 Load", key=f"load_{ticker}", type="primary", use_container_width=True)
+
+        if load_clicked:
+            with st.spinner(f"Loading {ticker} data for {selected_year}..."):
+                fin, info, err = fetch_ticker(ticker)
+                if err:
+                    st.error(err)
+                else:
+                    st.session_state.fin = fin
+                    st.session_state.info = info
+                    st.session_state.ticker = ticker
+                    st.session_state.selected_usa_year = selected_year
+
+                    # Build year list from column headers
+                    cols = list(fin.columns)
+                    years_avail = [c.strftime("%Y") if hasattr(c, "strftime") else str(c) for c in cols]
+                    st.session_state.year_opts = years_avail
+
+                    # Find column index for selected year
+                    col_idx = 0
+                    for i, y in enumerate(years_avail):
+                        if str(selected_year) in y:
+                            col_idx = i
+                            break
+
+                    st.session_state.income = parse_income(fin, col_idx)
+                    st.session_state.selected_col_idx = col_idx
+                    st.success(f"✅ Loaded {info.get('shortName', ticker)} — FY{selected_year}")
+                    st.rerun()
+
+
+# ─────────────────────────────────────────────
 # MAIN
 # ─────────────────────────────────────────────
 def main():
     # Session state init
     for k, v in [("fin", None), ("info", {}), ("ticker", None),
-                 ("income", None), ("year_opts", ["Latest"])]:
+                 ("income", None), ("year_opts", ["Latest"]),
+                 ("show_year_dropdown", None), ("selected_usa_year", None),
+                 ("selected_col_idx", 0)]:
         if k not in st.session_state:
             st.session_state[k] = v
 
@@ -466,12 +547,16 @@ def main():
     fin  = st.session_state.fin
     info = st.session_state.info
 
-    col_idx = 0
+    col_idx = st.session_state.get("selected_col_idx", 0)
     if fin is not None:
         yo = st.session_state.year_opts
-        if cfg["sel_year"] in yo:
+        # Use sidebar selection if no USA mode selection was made
+        if cfg["sel_year"] in yo and col_idx == 0:
             col_idx = yo.index(cfg["sel_year"])
+            st.session_state.selected_col_idx = col_idx
+
         income = parse_income(fin, col_idx)
+        # YoY: get previous year data (col_idx + 1 since Yahoo data is newest first)
         yoy    = parse_income(fin, col_idx + 1) if (cfg["show_yoy"] and col_idx + 1 < fin.shape[1]) else None
     else:
         income = st.session_state.income or SAMPLE_DATA
@@ -488,26 +573,30 @@ def main():
     with t1:
         using_sample = (fin is None)
         if using_sample:
-            st.info("📌 Showing sample data (NVDA FY2024 approx.). Enter a ticker in the sidebar to load real data.")
+            st.info("📌 Showing sample data (NVDA FY2024 approx.). Enter a ticker in the sidebar or select a company below to load real data.")
 
-        # Quick-load buttons
+        # USA Mode — Company selector with year dropdown
+        st.markdown("### 🇺🇸 Quick Load — US Companies")
+        st.caption("Click a company to open year selector (2016-2025)")
+
+        # Initialize session state for showing dropdown
+        if "show_year_dropdown" not in st.session_state:
+            st.session_state.show_year_dropdown = None
+
+        # Company buttons row
         c1, c2, c3, c4 = st.columns(4)
+        company_clicks = {}
         for col, sym, emoji in [(c1,"NVDA","🟢"),(c2,"AAPL","🍎"),(c3,"MSFT","🪟"),(c4,"GOOGL","🔍")]:
             with col:
-                if st.button(f"{emoji} {sym}", use_container_width=True):
-                    with st.spinner(f"Loading {sym}…"):
-                        fin2, info2, err2 = fetch_ticker(sym)
-                    if err2:
-                        st.error(err2)
-                    else:
-                        st.session_state.fin    = fin2
-                        st.session_state.info   = info2
-                        st.session_state.ticker = sym
-                        cols2 = list(fin2.columns)
-                        years2 = [c.strftime("%Y") if hasattr(c,"strftime") else str(c) for c in cols2]
-                        st.session_state.year_opts = years2
-                        st.session_state.income    = parse_income(fin2, 0)
-                        st.rerun()
+                if st.button(f"{emoji} {sym}", use_container_width=True, key=f"btn_{sym}"):
+                    st.session_state.show_year_dropdown = sym
+
+        # Show year selector dropdown if a company was clicked
+        if st.session_state.show_year_dropdown:
+            ticker_clicked = st.session_state.show_year_dropdown
+            emoji_map = {"NVDA": "🟢", "AAPL": "🍎", "MSFT": "🪟", "GOOGL": "🔍"}
+            st.divider()
+            year_selector_dropdown(ticker_clicked, emoji_map.get(ticker_clicked, "📊"))
 
         st.divider()
 
@@ -533,7 +622,15 @@ def main():
 
         # Build diagram
         ticker_label = st.session_state.ticker or "Sample"
-        year_label   = cfg["sel_year"] if fin is not None else "FY2024 (approx.)"
+        if fin is not None:
+            # Use the selected year from USA mode or sidebar
+            selected_year = st.session_state.get("selected_usa_year")
+            if selected_year:
+                year_label = f"FY{selected_year}"
+            else:
+                year_label = cfg["sel_year"]
+        else:
+            year_label = "FY2024 (approx.)"
         title = f"{ticker_label} · Income Statement · {year_label}"
 
         fig = build_sankey(income, cur, sc, cfg["palette"], title)
