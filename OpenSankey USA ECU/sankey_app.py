@@ -533,32 +533,43 @@ def main():
         if comparison_year != st.session_state.comparison_year:
             st.session_state.comparison_year = comparison_year
     
-    with col3:
-        st.markdown("&nbsp;")
-        load_clicked = st.button("🚀 Load", type="primary", use_container_width=True)
-    
     st.divider()
 
-    # ── Load Data ───────────────────────────────────────────────────
-    if load_clicked and ticker_input:
+    # ── Check if we need to load/update data ────────────────────────
+    # Trigger reload when ticker or years change
+    ticker_changed = ticker_input != st.session_state.ticker
+    years_changed = analysis_year != st.session_state.analysis_year or comparison_year != st.session_state.comparison_year
+    needs_reload = ticker_changed or years_changed or not st.session_state.data_loaded
+
+    if needs_reload and ticker_input:
         with st.spinner(f"Loading {ticker_input} data..."):
-            fin, info, err = fetch_ticker(ticker_input)
-            if err:
-                st.error(f"❌ {err}")
+            # Only fetch from Yahoo if ticker changed or first load
+            if ticker_changed or not st.session_state.data_loaded:
+                fin, info, err = fetch_ticker(ticker_input)
+                if err:
+                    st.error(f"❌ {err}")
+                    fin = None
+                    info = None
+                else:
+                    st.session_state.fin = fin
+                    st.session_state.info = info
+                    st.session_state.ticker = ticker_input
+                    st.session_state.data_loaded = True
+                    
+                    # Build year list from column headers
+                    cols = list(fin.columns)
+                    years_avail = [c.strftime("%Y") if hasattr(c, "strftime") else str(c) for c in cols]
+                    st.session_state.year_opts = years_avail
             else:
-                st.session_state.fin = fin
-                st.session_state.info = info
-                st.session_state.ticker = ticker_input
+                # Use existing data, just update years
+                fin = st.session_state.fin
+                info = st.session_state.info
                 st.session_state.analysis_year = analysis_year
                 st.session_state.comparison_year = comparison_year
-                st.session_state.data_loaded = True
-                
-                # Build year list from column headers
-                cols = list(fin.columns)
-                years_avail = [c.strftime("%Y") if hasattr(c, "strftime") else str(c) for c in cols]
-                st.session_state.year_opts = years_avail
-                
+            
+            if fin is not None:
                 # Find column indices for selected years
+                years_avail = st.session_state.year_opts
                 analysis_idx = 0
                 comparison_idx = None
                 for i, y in enumerate(years_avail):
@@ -570,32 +581,10 @@ def main():
                 st.session_state.analysis_idx = analysis_idx
                 st.session_state.comparison_idx = comparison_idx
                 st.session_state.income = parse_income(fin, analysis_idx)
-                st.rerun()
-
-    # ── Auto-load NVDA on first visit ───────────────────────────────
-    if not st.session_state.data_loaded and st.session_state.ticker == "NVDA":
-        with st.spinner("Loading NVDA data..."):
-            fin, info, err = fetch_ticker("NVDA")
-            if not err:
-                st.session_state.fin = fin
-                st.session_state.info = info
-                st.session_state.data_loaded = True
-                cols = list(fin.columns)
-                years_avail = [c.strftime("%Y") if hasattr(c, "strftime") else str(c) for c in cols]
-                st.session_state.year_opts = years_avail
                 
-                # Find 2025 and 2024 indices
-                analysis_idx = 0
-                comparison_idx = None
-                for i, y in enumerate(years_avail):
-                    if "2025" in str(y):
-                        analysis_idx = i
-                    if "2024" in str(y):
-                        comparison_idx = i
-                
-                st.session_state.analysis_idx = analysis_idx
-                st.session_state.comparison_idx = comparison_idx
-                st.session_state.income = parse_income(fin, analysis_idx)
+                # Force rerun to update display with new data
+                if ticker_changed:
+                    st.rerun()
 
     # ── Resolve selected year → income data ────────────────────────
     fin  = st.session_state.fin
