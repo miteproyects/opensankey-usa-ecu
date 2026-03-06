@@ -516,14 +516,22 @@ def main():
         analysis_year = st.selectbox("Analysis Year", 
                                      list(range(2025, 2015, -1)), 
                                      index=list(range(2025, 2015, -1)).index(st.session_state.analysis_year),
-                                     label_visibility="collapsed")
+                                     label_visibility="collapsed",
+                                     key="analysis_year_select")
+        # Update session state immediately when changed
+        if analysis_year != st.session_state.analysis_year:
+            st.session_state.analysis_year = analysis_year
     
     with col2:
         st.markdown("**Period for comparison:**")
         comparison_year = st.selectbox("Comparison Year", 
                                        list(range(2025, 2015, -1)), 
                                        index=list(range(2025, 2015, -1)).index(st.session_state.comparison_year),
-                                       label_visibility="collapsed")
+                                       label_visibility="collapsed",
+                                       key="comparison_year_select")
+        # Update session state immediately when changed
+        if comparison_year != st.session_state.comparison_year:
+            st.session_state.comparison_year = comparison_year
     
     with col3:
         st.markdown("&nbsp;")
@@ -594,8 +602,21 @@ def main():
     info = st.session_state.info
 
     if fin is not None:
-        analysis_idx = st.session_state.get("analysis_idx", 0)
-        comparison_idx = st.session_state.get("comparison_idx")
+        # Recalculate indices based on current year selections
+        years_avail = st.session_state.year_opts
+        analysis_year = st.session_state.get("analysis_year", 2025)
+        comparison_year = st.session_state.get("comparison_year", 2024)
+        
+        analysis_idx = 0
+        comparison_idx = None
+        for i, y in enumerate(years_avail):
+            if str(analysis_year) in str(y):
+                analysis_idx = i
+            if str(comparison_year) in str(y):
+                comparison_idx = i
+        
+        st.session_state.analysis_idx = analysis_idx
+        st.session_state.comparison_idx = comparison_idx
         
         income = parse_income(fin, analysis_idx)
         yoy = parse_income(fin, comparison_idx) if comparison_idx is not None else None
