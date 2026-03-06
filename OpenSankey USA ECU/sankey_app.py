@@ -481,7 +481,7 @@ def main():
     # Session state init
     for k, v in [("fin", None), ("info", {}), ("ticker", "NVDA"),
                  ("income", None), ("year_opts", ["2025", "2024", "2023", "2022", "2021"]),
-                 ("analysis_year", 2025), ("comparison_year", 2021),
+                 ("analysis_year", 2025), ("comparison_year", 2024),
                  ("data_loaded", False)]:
         if k not in st.session_state:
             st.session_state[k] = v
@@ -576,13 +576,13 @@ def main():
                 years_avail = [c.strftime("%Y") if hasattr(c, "strftime") else str(c) for c in cols]
                 st.session_state.year_opts = years_avail
                 
-                # Find 2025 and 2021 indices
+                # Find 2025 and 2024 indices
                 analysis_idx = 0
                 comparison_idx = None
                 for i, y in enumerate(years_avail):
                     if "2025" in str(y):
                         analysis_idx = i
-                    if "2021" in str(y):
+                    if "2024" in str(y):
                         comparison_idx = i
                 
                 st.session_state.analysis_idx = analysis_idx
