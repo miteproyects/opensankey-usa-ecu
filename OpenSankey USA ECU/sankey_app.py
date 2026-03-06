@@ -508,46 +508,55 @@ def main():
         st.write("")  # Spacer
         st.write("")
     
-    # Year selectors
+    # Year selectors - interdependent
     col1, col2 = st.columns([2, 2])
+    
+    # Get current values from session state
+    current_analysis = st.session_state.analysis_year
+    current_comparison = st.session_state.comparison_year
+    
+    # Ensure valid relationship: comparison < analysis
+    if current_comparison >= current_analysis:
+        current_comparison = current_analysis - 1
+        if current_comparison < 2016:
+            current_comparison = 2016
+            current_analysis = 2017
+        st.session_state.comparison_year = current_comparison
+        st.session_state.analysis_year = current_analysis
     
     with col1:
         st.markdown("**Initial time period to analyze:**")
+        # Analysis year must be GREATER than comparison year
+        valid_analysis_years = list(range(2025, current_comparison, -1))
+        
+        # Ensure current analysis year is in valid options
+        if current_analysis not in valid_analysis_years:
+            current_analysis = valid_analysis_years[0] if valid_analysis_years else 2025
+            st.session_state.analysis_year = current_analysis
+        
+        analysis_index = valid_analysis_years.index(current_analysis)
+        
         analysis_year = st.selectbox("Analysis Year", 
-                                     list(range(2025, 2015, -1)), 
-                                     index=list(range(2025, 2015, -1)).index(st.session_state.analysis_year),
+                                     valid_analysis_years, 
+                                     index=analysis_index,
                                      label_visibility="collapsed",
                                      key="analysis_year_select")
         # Update session state immediately when changed
         if analysis_year != st.session_state.analysis_year:
             st.session_state.analysis_year = analysis_year
-            # Reset comparison year if it's now >= analysis year
-            if st.session_state.comparison_year >= analysis_year:
-                # Set to one year before analysis year, or 2016 if at minimum
-                new_comparison = min(analysis_year - 1, 2024)
-                if new_comparison >= 2016:
-                    st.session_state.comparison_year = new_comparison
-                else:
-                    st.session_state.comparison_year = 2016
-                st.rerun()
+            st.rerun()
     
     with col2:
         st.markdown("**Period for comparison:**")
-        # Only allow comparison years that are LESS than analysis year
+        # Comparison year must be LESS than analysis year
         valid_comparison_years = list(range(analysis_year - 1, 2015, -1))
         
-        # Ensure current comparison year is valid
-        current_comparison = st.session_state.comparison_year
-        if current_comparison >= analysis_year:
+        # Ensure current comparison year is in valid options
+        if current_comparison not in valid_comparison_years:
             current_comparison = valid_comparison_years[0] if valid_comparison_years else 2016
             st.session_state.comparison_year = current_comparison
         
-        # Find index of current comparison year in valid options
-        try:
-            comparison_index = valid_comparison_years.index(current_comparison)
-        except ValueError:
-            comparison_index = 0
-            st.session_state.comparison_year = valid_comparison_years[0] if valid_comparison_years else 2016
+        comparison_index = valid_comparison_years.index(current_comparison)
         
         comparison_year = st.selectbox("Comparison Year", 
                                        valid_comparison_years, 
@@ -557,6 +566,7 @@ def main():
         # Update session state immediately when changed
         if comparison_year != st.session_state.comparison_year:
             st.session_state.comparison_year = comparison_year
+            st.rerun()
     
     st.divider()
 
