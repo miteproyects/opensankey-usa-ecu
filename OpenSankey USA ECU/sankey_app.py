@@ -608,9 +608,12 @@ def main():
                 analysis_idx = 0
                 comparison_idx = None
                 for i, y in enumerate(years_avail):
-                    if str(analysis_year) in str(y):
+                    y_str = str(y)
+                    # Extract year from date string (e.g., "2020-01-31 00:00:00" -> "2020")
+                    y_year = y_str[:4] if len(y_str) >= 4 else y_str
+                    if str(analysis_year) == y_year:
                         analysis_idx = i
-                    if str(comparison_year) in str(y):
+                    if str(comparison_year) == y_year:
                         comparison_idx = i
                 
                 st.session_state.analysis_idx = analysis_idx
@@ -631,13 +634,22 @@ def main():
         analysis_year = st.session_state.get("analysis_year", 2025)
         comparison_year = st.session_state.get("comparison_year", 2024)
         
+        # Debug info
+        # st.write(f"Debug: years_avail = {years_avail}")
+        # st.write(f"Debug: looking for analysis_year={analysis_year}, comparison_year={comparison_year}")
+        
         analysis_idx = 0
         comparison_idx = None
         for i, y in enumerate(years_avail):
-            if str(analysis_year) in str(y):
+            y_str = str(y)
+            # Extract year from date string (e.g., "2020-01-31 00:00:00" -> "2020")
+            y_year = y_str[:4] if len(y_str) >= 4 else y_str
+            if str(analysis_year) == y_year:
                 analysis_idx = i
-            if str(comparison_year) in str(y):
+            if str(comparison_year) == y_year:
                 comparison_idx = i
+        
+        # st.write(f"Debug: analysis_idx={analysis_idx}, comparison_idx={comparison_idx}")
         
         st.session_state.analysis_idx = analysis_idx
         st.session_state.comparison_idx = comparison_idx
