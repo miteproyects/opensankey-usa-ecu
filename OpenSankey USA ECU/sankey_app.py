@@ -635,8 +635,8 @@ def main():
         comparison_year = st.session_state.get("comparison_year", 2024)
         
         # Debug info
-        # st.write(f"Debug: years_avail = {years_avail}")
-        # st.write(f"Debug: looking for analysis_year={analysis_year}, comparison_year={comparison_year}")
+        st.write(f"Debug: years_avail = {years_avail}")
+        st.write(f"Debug: looking for analysis_year={analysis_year}, comparison_year={comparison_year}")
         
         analysis_idx = 0
         comparison_idx = None
@@ -649,7 +649,7 @@ def main():
             if str(comparison_year) == y_year:
                 comparison_idx = i
         
-        # st.write(f"Debug: analysis_idx={analysis_idx}, comparison_idx={comparison_idx}")
+        st.write(f"Debug: analysis_idx={analysis_idx}, comparison_idx={comparison_idx}")
         
         st.session_state.analysis_idx = analysis_idx
         st.session_state.comparison_idx = comparison_idx
