@@ -609,10 +609,17 @@ def main():
     
     # Company header with icon
     company_icon = get_company_icon(st.session_state.ticker)
+    analysis_year = st.session_state.get("analysis_year", 2025)
+    comparison_year = st.session_state.get("comparison_year", 2021)
+    
     if info:
         st.markdown(f"### {company_icon} {st.session_state.ticker}")
     else:
         st.markdown(f"### 📊 {st.session_state.ticker}")
+    
+    # Show YoY comparison info
+    if yoy:
+        st.caption(f"📊 Comparing FY{analysis_year} vs FY{comparison_year}")
     
     # KPI metrics row
     sc  = cfg["scale"]
@@ -620,11 +627,12 @@ def main():
     m1, m2, m3, m4 = st.columns(4)
 
     def delta_str(key):
-        if yoy and yoy.get(key, 0):
+        if yoy and key in yoy and key in income:
             prev = yoy[key]
-            curr = income.get(key, 0)
-            if prev:
-                return f"{((curr - prev)/abs(prev)*100):+.1f}% YoY"
+            curr = income[key]
+            if prev and prev != 0:
+                delta = ((curr - prev) / abs(prev)) * 100
+                return f"{delta:+.1f}%"
         return None
 
     m1.metric("Revenue",          fmt(income.get("Total Revenue",0),   cur, sc), delta_str("Total Revenue"))
