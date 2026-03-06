@@ -535,12 +535,13 @@ def main():
             st.session_state.fin    = fin
             st.session_state.info   = info
             st.session_state.ticker = cfg["ticker"]
+            st.session_state.custom_ticker_fetched = cfg["ticker"]  # Mark that we fetched a custom ticker
             # Build year list from column headers
             cols = list(fin.columns)
             years = [c.strftime("%Y") if hasattr(c, "strftime") else str(c) for c in cols]
             st.session_state.year_opts = years
             st.session_state.income    = parse_income(fin, 0)
-            st.success(f"✅ Loaded {info.get('shortName', cfg['ticker'])}")
+            st.success(f"✅ Loaded {info.get('shortName', cfg['ticker'])} — Select a year below")
             st.rerun()
 
     # ── Resolve selected year → income data ────────────────────────
@@ -597,6 +598,50 @@ def main():
             emoji_map = {"NVDA": "🟢", "AAPL": "🍎", "MSFT": "🪟", "GOOGL": "🔍"}
             st.divider()
             year_selector_dropdown(ticker_clicked, emoji_map.get(ticker_clicked, "📊"))
+
+        # Show year selector for custom ticker (fetched from sidebar)
+        custom_ticker = st.session_state.get("custom_ticker_fetched")
+        if custom_ticker and fin is not None:
+            st.divider()
+            st.markdown(f"### 📊 {custom_ticker}")
+            st.caption("Select fiscal year to visualize (includes YoY data)")
+            
+            # Get available years from the fetched data
+            years_avail = st.session_state.year_opts
+            # Extract just the year numbers (2016-2025)
+            available_years = []
+            for y in years_avail:
+                year_str = str(y)
+                for year_num in range(2016, 2026):
+                    if str(year_num) in year_str:
+                        available_years.append(year_num)
+                        break
+            
+            if available_years:
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    selected_year = st.selectbox(
+                        "Fiscal Year",
+                        options=available_years,
+                        index=0,  # Default to first (most recent)
+                        key=f"year_select_custom_{custom_ticker}",
+                        label_visibility="collapsed"
+                    )
+                with col2:
+                    if st.button("🚀 Load", key=f"load_custom_{custom_ticker}", type="primary", use_container_width=True):
+                        with st.spinner(f"Loading {custom_ticker} data for {selected_year}..."):
+                            # Find column index for selected year
+                            col_idx = 0
+                            for i, y in enumerate(years_avail):
+                                if str(selected_year) in str(y):
+                                    col_idx = i
+                                    break
+                            
+                            st.session_state.income = parse_income(fin, col_idx)
+                            st.session_state.selected_col_idx = col_idx
+                            st.session_state.selected_usa_year = selected_year
+                            st.success(f"✅ Loaded {info.get('shortName', custom_ticker)} — FY{selected_year}")
+                            st.rerun()
 
         st.divider()
 
