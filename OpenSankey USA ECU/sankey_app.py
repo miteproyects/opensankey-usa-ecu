@@ -480,7 +480,7 @@ def sidebar():
 def main():
     # Session state init
     for k, v in [("fin", None), ("info", {}), ("ticker", "NVDA"),
-                 ("income", None), ("year_opts", ["2025", "2024", "2023", "2022", "2021"]),
+                 ("income", None), ("year_opts", ["2025", "2024", "2023", "2022"]),
                  ("analysis_year", 2025), ("comparison_year", 2024),
                  ("data_loaded", False)]:
         if k not in st.session_state:
@@ -508,8 +508,27 @@ def main():
         st.write("")  # Spacer
         st.write("")
     
-    # Year selectors - interdependent
+    # Year selectors - interdependent, based on available Yahoo Finance data
     col1, col2 = st.columns([2, 2])
+    
+    # Get available years from Yahoo Finance data (or default if not loaded yet)
+    if st.session_state.data_loaded and st.session_state.year_opts:
+        # Extract years from Yahoo Finance data
+        years_avail = st.session_state.year_opts
+        available_years = []
+        for y in years_avail:
+            y_str = str(y)
+            y_year = y_str[:4] if len(y_str) >= 4 else y_str
+            try:
+                year_int = int(y_year)
+                if year_int not in available_years:
+                    available_years.append(year_int)
+            except ValueError:
+                pass
+        available_years.sort(reverse=True)  # Newest first
+    else:
+        # Default years until data is loaded
+        available_years = [2025, 2024, 2023, 2022]
     
     # Get current values from session state
     current_analysis = st.session_state.analysis_year
@@ -517,21 +536,26 @@ def main():
     
     # Ensure valid relationship: comparison < analysis
     if current_comparison >= current_analysis:
-        current_comparison = current_analysis - 1
-        if current_comparison < 2016:
-            current_comparison = 2016
-            current_analysis = 2017
+        # Find a valid comparison year (one less than analysis, if available)
+        analysis_idx = available_years.index(current_analysis) if current_analysis in available_years else 0
+        if analysis_idx + 1 < len(available_years):
+            current_comparison = available_years[analysis_idx + 1]
+        else:
+            # Fallback: use the oldest available year
+            current_comparison = available_years[-1] if available_years else 2022
         st.session_state.comparison_year = current_comparison
-        st.session_state.analysis_year = current_analysis
     
     with col1:
         st.markdown("**Initial time period to analyze:**")
-        # Analysis year must be GREATER than comparison year
-        valid_analysis_years = list(range(2025, current_comparison, -1))
+        # Analysis year must be in available years and greater than comparison
+        valid_analysis_years = [y for y in available_years if y > current_comparison]
+        
+        if not valid_analysis_years:
+            valid_analysis_years = available_years[:1]  # At least the most recent
         
         # Ensure current analysis year is in valid options
         if current_analysis not in valid_analysis_years:
-            current_analysis = valid_analysis_years[0] if valid_analysis_years else 2025
+            current_analysis = valid_analysis_years[0]
             st.session_state.analysis_year = current_analysis
         
         analysis_index = valid_analysis_years.index(current_analysis)
@@ -548,12 +572,17 @@ def main():
     
     with col2:
         st.markdown("**Period for comparison:**")
-        # Comparison year must be LESS than analysis year
-        valid_comparison_years = list(range(analysis_year - 1, 2015, -1))
+        # Comparison year must be in available years and less than analysis year
+        valid_comparison_years = [y for y in available_years if y < analysis_year]
+        
+        if not valid_comparison_years:
+            # If no valid comparison, use years less than max available
+            max_year = max(available_years) if available_years else 2025
+            valid_comparison_years = [y for y in available_years if y < max_year]
         
         # Ensure current comparison year is in valid options
         if current_comparison not in valid_comparison_years:
-            current_comparison = valid_comparison_years[0] if valid_comparison_years else 2016
+            current_comparison = valid_comparison_years[0] if valid_comparison_years else available_years[-1]
             st.session_state.comparison_year = current_comparison
         
         comparison_index = valid_comparison_years.index(current_comparison)
