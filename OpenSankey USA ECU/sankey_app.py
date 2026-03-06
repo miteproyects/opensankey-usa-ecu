@@ -93,6 +93,146 @@ NODE_PALETTES = {
     "mono":    ["#d1d5db","#9ca3af","#6b7280","#4b5563","#374151","#1f2937","#111827","#e5e7eb","#f3f4f6","#374151","#d1d5db"],
 }
 
+# ─────────────────────────────────────────────
+# COMPANY ICONS MAPPING
+# ─────────────────────────────────────────────
+COMPANY_ICONS = {
+    # Tech
+    "NVDA": "🟢",      # NVIDIA - green chip
+    "AAPL": "🍎",      # Apple - apple
+    "MSFT": "🪟",      # Microsoft - windows
+    "GOOGL": "🔍",     # Google - search
+    "GOOG": "🔍",      # Google - search
+    "META": "👥",      # Meta - people/social
+    "AMZN": "📦",      # Amazon - package
+    "TSLA": "⚡",      # Tesla - lightning
+    "NFLX": "🎬",      # Netflix - movie
+    "AMD": "🔴",       # AMD - red chip
+    "INTC": "🔵",      # Intel - blue chip
+    "IBM": "💻",       # IBM - computer
+    "ORCL": "🗄️",      # Oracle - database
+    "CRM": "☁️",       # Salesforce - cloud
+    "ADBE": "🎨",      # Adobe - creative
+    "PYPL": "💳",      # PayPal - payment
+    "UBER": "🚗",      # Uber - car
+    "LYFT": "🚙",      # Lyft - car
+    "ABNB": "🏠",      # Airbnb - house
+    "ZM": "📹",        # Zoom - video
+    "SNOW": "❄️",      # Snowflake - snow
+    "PLTR": "🔮",      # Palantir - crystal ball
+    
+    # Beverages / Food
+    "KO": "🥤",        # Coca-Cola - soda can
+    "PEP": "🥤",       # Pepsi - soda
+    "MNST": "⚡",       # Monster Energy - energy
+    "KDP": "☕",        # Keurig Dr Pepper - coffee
+    "SBUX": "☕",       # Starbucks - coffee
+    "MCD": "🍔",       # McDonald's - burger
+    "YUM": "🍗",        # Yum Brands - chicken
+    "CMG": "🌯",        # Chipotle - burrito
+    "DPZ": "🍕",        # Domino's - pizza
+    
+    # Retail
+    "WMT": "🛒",       # Walmart - cart
+    "TGT": "🎯",        # Target - target
+    "COST": "🏪",       # Costco - warehouse
+    "HD": "🔨",         # Home Depot - tools
+    "LOW": "🔧",        # Lowe's - tools
+    "BBY": "📺",        # Best Buy - TV
+    
+    # Finance / Banking
+    "JPM": "🏦",        # JPMorgan - bank
+    "BAC": "🏛️",        # Bank of America - building
+    "WFC": "🐎",        # Wells Fargo - stagecoach/horse
+    "GS": "💰",         # Goldman Sachs - money
+    "MS": "📈",         # Morgan Stanley - chart
+    "C": "💳",          # Citigroup - card
+    "AXP": "💳",        # American Express - card
+    "V": "💳",          # Visa - card
+    "MA": "💳",         # Mastercard - card
+    "BLK": "⬛",        # BlackRock - black rock
+    
+    # Energy
+    "XOM": "⛽",        # ExxonMobil - gas
+    "CVX": "🛢️",        # Chevron - oil
+    "COP": "🛢️",        # ConocoPhillips - oil
+    "EOG": "🛢️",        # EOG Resources - oil
+    "SLB": "🔧",        # Schlumberger - tools
+    "OXY": "🏭",        # Occidental - factory
+    
+    # Healthcare / Pharma
+    "JNJ": "💊",        # Johnson & Johnson - pill
+    "PFE": "💉",        # Pfizer - syringe
+    "MRK": "🧪",        # Merck - lab
+    "ABBV": "💊",       # AbbVie - pill
+    "LLY": "🧬",        # Eli Lilly - DNA
+    "TMO": "🔬",        # Thermo Fisher - microscope
+    "UNH": "🏥",        # UnitedHealth - hospital
+    "CVS": "💊",        # CVS - pharmacy
+    
+    # Telecom
+    "T": "📞",          # AT&T - phone
+    "VZ": "📡",         # Verizon - signal
+    "TMUS": "📱",       # T-Mobile - phone
+    
+    # Entertainment / Media
+    "DIS": "🏰",        # Disney - castle
+    "WBD": "📺",        # Warner Bros - TV
+    "PARA": "🎬",       # Paramount - movie
+    "SPOT": "🎵",       # Spotify - music
+    "SONY": "🎮",       # Sony - gaming
+    "EA": "🎮",         # Electronic Arts - gaming
+    "TTWO": "🎮",       # Take-Two - gaming
+    
+    # Automotive
+    "F": "🚗",          # Ford - car
+    "GM": "🚙",         # GM - car
+    "STLA": "🚐",       # Stellantis - van
+    "TM": "🚘",         # Toyota - car
+    "HMC": "🚗",        # Honda - car
+    
+    # Airlines / Travel
+    "DAL": "✈️",        # Delta - plane
+    "UAL": "✈️",        # United - plane
+    "AAL": "✈️",        # American - plane
+    "LUV": "💛",        # Southwest - heart
+    "CCL": "🚢",        # Carnival - cruise
+    "RCL": "🛳️",        # Royal Caribbean - ship
+    
+    # Industrial
+    "GE": "⚙️",         # GE - gear
+    "HON": "🏭",        # Honeywell - factory
+    "CAT": "🚜",        # Caterpillar - tractor
+    "DE": "🌾",         # Deere - tractor/farm
+    "BA": "✈️",         # Boeing - plane
+    "RTX": "🚀",        # Raytheon - rocket
+    "LMT": "🛩️",        # Lockheed - jet
+    
+    # Materials / Mining
+    "LIN": "🎈",        # Linde - gas
+    "APD": "💨",        # Air Products - air
+    "NEM": "⛏️",        # Newmont - mining
+    "FCX": "⛏️",        # Freeport - mining
+    
+    # Real Estate
+    "AMT": "📡",        # American Tower - tower
+    "PLD": "🏭",        # Prologis - warehouse
+    "CCI": "📶",        # Crown Castle - signal
+    
+    # Utilities
+    "NEE": "⚡",         # NextEra - energy
+    "DUK": "⚡",         # Duke - energy
+    "SO": "⚡",          # Southern - energy
+    "AEP": "⚡",         # AEP - energy
+    
+    # Misc / Default
+    "DEFAULT": "🟢",    # Default green circle
+}
+
+def get_company_icon(ticker):
+    """Get the appropriate icon for a company ticker."""
+    return COMPANY_ICONS.get(ticker.upper(), COMPANY_ICONS["DEFAULT"])
+
 
 # ─────────────────────────────────────────────
 # HELPERS
@@ -467,9 +607,10 @@ def main():
 
     # ── Display Results ─────────────────────────────────────────────
     
-    # Company header
+    # Company header with icon
+    company_icon = get_company_icon(st.session_state.ticker)
     if info:
-        st.markdown(f"### 🟢 {st.session_state.ticker}")
+        st.markdown(f"### {company_icon} {st.session_state.ticker}")
     else:
         st.markdown(f"### 📊 {st.session_state.ticker}")
     
