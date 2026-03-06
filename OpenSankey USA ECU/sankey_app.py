@@ -509,7 +509,7 @@ def main():
         st.write("")
     
     # Year selectors
-    col1, col2, col3 = st.columns([2, 2, 1])
+    col1, col2 = st.columns([2, 2])
     
     with col1:
         st.markdown("**Initial time period to analyze:**")
@@ -521,12 +521,37 @@ def main():
         # Update session state immediately when changed
         if analysis_year != st.session_state.analysis_year:
             st.session_state.analysis_year = analysis_year
+            # Reset comparison year if it's now >= analysis year
+            if st.session_state.comparison_year >= analysis_year:
+                # Set to one year before analysis year, or 2016 if at minimum
+                new_comparison = min(analysis_year - 1, 2024)
+                if new_comparison >= 2016:
+                    st.session_state.comparison_year = new_comparison
+                else:
+                    st.session_state.comparison_year = 2016
+                st.rerun()
     
     with col2:
         st.markdown("**Period for comparison:**")
+        # Only allow comparison years that are LESS than analysis year
+        valid_comparison_years = list(range(analysis_year - 1, 2015, -1))
+        
+        # Ensure current comparison year is valid
+        current_comparison = st.session_state.comparison_year
+        if current_comparison >= analysis_year:
+            current_comparison = valid_comparison_years[0] if valid_comparison_years else 2016
+            st.session_state.comparison_year = current_comparison
+        
+        # Find index of current comparison year in valid options
+        try:
+            comparison_index = valid_comparison_years.index(current_comparison)
+        except ValueError:
+            comparison_index = 0
+            st.session_state.comparison_year = valid_comparison_years[0] if valid_comparison_years else 2016
+        
         comparison_year = st.selectbox("Comparison Year", 
-                                       list(range(2025, 2015, -1)), 
-                                       index=list(range(2025, 2015, -1)).index(st.session_state.comparison_year),
+                                       valid_comparison_years, 
+                                       index=comparison_index,
                                        label_visibility="collapsed",
                                        key="comparison_year_select")
         # Update session state immediately when changed
