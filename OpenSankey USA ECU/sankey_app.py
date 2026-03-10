@@ -283,12 +283,13 @@ def get_col(df, candidates, col_idx=0, default=0.0):
 # ─────────────────────────────────────────────
 # YAHOO FINANCE FETCH
 # ─────────────────────────────────────────────
-def fetch_ticker(symbol: str):
+def fetch_ticker(symbol: str, period: str = "Yearly"):
     """Fetch income statement + company info from Yahoo Finance."""
     try:
         t = yf.Ticker(symbol)
         fin = None
-        for attr in ("income_stmt", "financials"):
+        attr_list = ("quarterly_income_stmt", "quarterly_financials") if period == "Quarterly" else ("income_stmt", "financials")
+        for attr in attr_list:
             try:
                 fin = getattr(t, attr)
                 if fin is not None and not fin.empty:
@@ -446,10 +447,24 @@ def build_sankey(data: dict, currency="$", scale="B", palette="vivid", title="In
 # ─────────────────────────────────────────────
 # SIDEBAR (Simplified)
 # ─────────────────────────────────────────────
-def sidebar():
+def sidebar():  
+    ticker = st.text_input("Ticker Symbol", value="NVDA", help="e.g., NVDA, AAPL").upper().strip()  
+    period = st.selectbox("Period", ["Yearly", "Quarterly"])  
+    st.divider()  
+    # Year selectors (interdependent)  
+    if 'analysis_year' not in st.session_state:
     with st.sidebar:
         st.markdown("## 💹 OpenSankey")
         st.caption("Financial diagrams — local & private")
+        st.divider()
+
+        st.markdown("### 📈 Analysis Controls")
+        ticker = st.text_input("Ticker Symbol", value=st.session_state.get("ticker", "NVDA"), key="ticker_sb").upper().strip()
+        period = st.selectbox("Period", ["Yearly", "Quarterly"], key="period_sb")
+        st.markdown("### 📅 Time Periods")
+        analysis_year = st.number_input("Initial time period to analyze", value=st.session_state.get("analysis_year", 2025), min_value=1900, max_value=2030, key="analysis_sb")
+        comparison_year = st.number_input("Period for comparison", value=st.session_state.get("comparison_year", 2024), min_value=1900, max_value=analysis_year-1, key="comparison_sb")
+
         st.divider()
 
         # ── Display ──
@@ -468,6 +483,7 @@ def sidebar():
         exp_btn = st.button("⬇️ Export Diagram", use_container_width=True)
 
     return dict(
+        ticker=ticker, period=period, analysis_year=analysis_year, comparison_year=comparison_year,
         currency=currency, scale=scale,
         theme=theme, palette=palette, font_sz=font_sz,
         exp_fmt=exp_fmt, exp_btn=exp_btn,
@@ -494,122 +510,25 @@ def main():
     st.divider()
 
     # ── Main Search Interface ───────────────────────────────────────
-    col1, col2, col3 = st.columns([3, 1, 1])
-    
-    with col1:
-        ticker_input = st.text_input("Enter ticker symbol (e.g., NVDA)", 
-                                     value=st.session_state.ticker,
-                                     placeholder="AAPL, MSFT, NVDA, META...").upper().strip()
-    
-    with col2:
-        period_type = st.selectbox("Period", ["Yearly", "Quarterly"], index=0)
-    
-    with col3:
-        st.write("")  # Spacer
-        st.write("")
-    
-    # Year selectors - interdependent, based on available Yahoo Finance data
-    col1, col2 = st.columns([2, 2])
-    
-    # Get available years from Yahoo Finance data (or default if not loaded yet)
-    if st.session_state.data_loaded and st.session_state.year_opts:
-        # Extract years from Yahoo Finance data
-        years_avail = st.session_state.year_opts
-        available_years = []
-        for y in years_avail:
-            y_str = str(y)
-            y_year = y_str[:4] if len(y_str) >= 4 else y_str
-            try:
-                year_int = int(y_year)
-                if year_int not in available_years:
-                    available_years.append(year_int)
-            except ValueError:
-                pass
-        available_years.sort(reverse=True)  # Newest first
-    else:
-        # Default years until data is loaded
-        available_years = [2025, 2024, 2023, 2022]
-    
-    # Get current values from session state
-    current_analysis = st.session_state.analysis_year
-    current_comparison = st.session_state.comparison_year
-    
-    # Ensure valid relationship: comparison < analysis
-    if current_comparison >= current_analysis:
-        # Find a valid comparison year (one less than analysis, if available)
-        analysis_idx = available_years.index(current_analysis) if current_analysis in available_years else 0
-        if analysis_idx + 1 < len(available_years):
-            current_comparison = available_years[analysis_idx + 1]
-        else:
-            # Fallback: use the oldest available year
-            current_comparison = available_years[-1] if available_years else 2022
-        st.session_state.comparison_year = current_comparison
-    
-    with col1:
-        st.markdown("**Initial time period to analyze:**")
-        # Analysis year must be in available years and greater than comparison
-        valid_analysis_years = [y for y in available_years if y > current_comparison]
-        
-        if not valid_analysis_years:
-            valid_analysis_years = available_years[:1]  # At least the most recent
-        
-        # Ensure current analysis year is in valid options
-        if current_analysis not in valid_analysis_years:
-            current_analysis = valid_analysis_years[0]
-            st.session_state.analysis_year = current_analysis
-        
-        analysis_index = valid_analysis_years.index(current_analysis)
-        
-        analysis_year = st.selectbox("Analysis Year", 
-                                     valid_analysis_years, 
-                                     index=analysis_index,
-                                     label_visibility="collapsed",
-                                     key="analysis_year_select")
-        # Update session state immediately when changed
-        if analysis_year != st.session_state.analysis_year:
-            st.session_state.analysis_year = analysis_year
-            st.rerun()
-    
-    with col2:
-        st.markdown("**Period for comparison:**")
-        # Comparison year must be in available years and less than analysis year
-        valid_comparison_years = [y for y in available_years if y < analysis_year]
-        
-        if not valid_comparison_years:
-            # If no valid comparison, use years less than max available
-            max_year = max(available_years) if available_years else 2025
-            valid_comparison_years = [y for y in available_years if y < max_year]
-        
-        # Ensure current comparison year is in valid options
-        if current_comparison not in valid_comparison_years:
-            current_comparison = valid_comparison_years[0] if valid_comparison_years else available_years[-1]
-            st.session_state.comparison_year = current_comparison
-        
-        comparison_index = valid_comparison_years.index(current_comparison)
-        
-        comparison_year = st.selectbox("Comparison Year", 
-                                       valid_comparison_years, 
-                                       index=comparison_index,
-                                       label_visibility="collapsed",
-                                       key="comparison_year_select")
-        # Update session state immediately when changed
-        if comparison_year != st.session_state.comparison_year:
-            st.session_state.comparison_year = comparison_year
-            st.rerun()
+    # Controls now in sidebar - no main duplication
+    ticker_input = cfg['ticker']
+    period_type = cfg['period']
+    analysis_year = cfg['analysis_year']
+    comparison_year = cfg['comparison_year']
     
     st.divider()
 
     # ── Check if we need to load/update data ────────────────────────
     # Trigger reload when ticker or years change
-    ticker_changed = ticker_input != st.session_state.ticker
-    years_changed = analysis_year != st.session_state.analysis_year or comparison_year != st.session_state.comparison_year
-    needs_reload = ticker_changed or years_changed or not st.session_state.data_loaded
+    ticker_changed = ticker_input != st.session_state.get("ticker", "")
+    period_changed = period_type != st.session_state.get("period", "Yearly")
+    years_changed = analysis_year != st.session_state.get("analysis_year", 2025) or comparison_year != st.session_state.get("comparison_year", 2024)
+    needs_reload = ticker_changed or period_changed or years_changed or not st.session_state.get("data_loaded", False)
 
     if needs_reload and ticker_input:
-        with st.spinner(f"Loading {ticker_input} data..."):
-            # Only fetch from Yahoo if ticker changed or first load
-            if ticker_changed or not st.session_state.data_loaded:
-                fin, info, err = fetch_ticker(ticker_input)
+        with st.spinner(f"Loading {ticker_input} ({period_type}) data..."):
+            if ticker_changed or period_changed or not st.session_state.get("data_loaded", False):
+                fin, info, err = fetch_ticker(ticker_input, period_type)
                 if err:
                     st.error(f"❌ {err}")
                     fin = None
@@ -618,27 +537,26 @@ def main():
                     st.session_state.fin = fin
                     st.session_state.info = info
                     st.session_state.ticker = ticker_input
+                    st.session_state.period = period_type
                     st.session_state.data_loaded = True
                     
-                    # Build year list from column headers
+                    # Build year list
                     cols = list(fin.columns)
                     years_avail = [c.strftime("%Y") if hasattr(c, "strftime") else str(c) for c in cols]
                     st.session_state.year_opts = years_avail
             else:
-                # Use existing data, just update years
                 fin = st.session_state.fin
                 info = st.session_state.info
-                st.session_state.analysis_year = analysis_year
-                st.session_state.comparison_year = comparison_year
+            
+            st.session_state.analysis_year = analysis_year
+            st.session_state.comparison_year = comparison_year
             
             if fin is not None:
-                # Find column indices for selected years
                 years_avail = st.session_state.year_opts
                 analysis_idx = 0
                 comparison_idx = None
                 for i, y in enumerate(years_avail):
                     y_str = str(y)
-                    # Extract year from date string (e.g., "2020-01-31 00:00:00" -> "2020")
                     y_year = y_str[:4] if len(y_str) >= 4 else y_str
                     if str(analysis_year) == y_year:
                         analysis_idx = i
@@ -649,8 +567,7 @@ def main():
                 st.session_state.comparison_idx = comparison_idx
                 st.session_state.income = parse_income(fin, analysis_idx)
                 
-                # Force rerun to update display with new data
-                if ticker_changed:
+                if ticker_changed or period_changed:
                     st.rerun()
 
     # ── Resolve selected year → income data ────────────────────────
