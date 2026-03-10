@@ -1,5 +1,5 @@
 # ============================================================
-# SankeyViz — Financial Sankey Diagram Generator
+# OpenSankey — Financial Sankey Diagram Generator
 # Inspired by SankeyArt.com
 # ============================================================
 # INSTALL DEPENDENCIES:
@@ -22,7 +22,7 @@ import io
 # PAGE CONFIG
 # ─────────────────────────────────────────────
 st.set_page_config(
-    page_title="SankeyViz • Financial Diagrams",
+    page_title="OpenSankey • Financial Diagrams",
     page_icon="💹",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -448,7 +448,7 @@ def build_sankey(data: dict, currency="$", scale="B", palette="vivid", title="In
 # ─────────────────────────────────────────────
 def sidebar():
     with st.sidebar:
-        st.markdown("## 💹 SankeyViz")
+        st.markdown("## 💹 OpenSankey")
         st.caption("Financial diagrams — local & private")
         st.divider()
 
@@ -489,7 +489,7 @@ def main():
     cfg = sidebar()
 
     # ── Header ──────────────────────────────────────────────────────
-    st.markdown('<p class="title-gradient">💹 SankeyViz</p>', unsafe_allow_html=True)
+    st.markdown('<p class="title-gradient">💹 OpenSankey</p>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Financial Statement → Sankey Diagram &nbsp;|&nbsp; Data: Yahoo Finance &nbsp;|&nbsp; Rendering: 100% local</p>', unsafe_allow_html=True)
     st.divider()
 
@@ -767,7 +767,7 @@ def main():
 
     # Footer
     st.divider()
-    st.caption("💹 SankeyViz • Local financial diagram tool • Data: Yahoo Finance • Built with Streamlit & Plotly")
+    st.caption("💹 OpenSankey • Local financial diagram tool • Data: Yahoo Finance • Built with Streamlit & Plotly")
 
 
 if __name__ == "__main__":
